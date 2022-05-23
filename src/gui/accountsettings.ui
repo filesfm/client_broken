@@ -42,7 +42,7 @@
       <item>
        <widget class="QToolButton" name="openBrowserButton">
         <property name="text">
-         <string>Re-open Browser</string>
+         <string>Open Browser</string>
         </property>
        </widget>
       </item>

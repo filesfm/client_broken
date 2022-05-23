@@ -189,8 +189,9 @@ AccountSettings::AccountSettings(AccountStatePtr accountState, QWidget *parent)
         this, &AccountSettings::slotUpdateQuota);
 
     ui->openBrowserButton->setVisible(false);
-    connect(ui->openBrowserButton, &QToolButton::clicked, this, [this]{
+    connect(ui->openBrowserButton, &QToolButton::clicked, this, [this] {
         qobject_cast<HttpCredentialsGui *>(_accountState->account()->credentials())->openBrowser();
+        ui->openBrowserButton->setText(tr("Reopen browser"));
     });
 
     ui->copyOAuthUrlButton->setVisible(false);
