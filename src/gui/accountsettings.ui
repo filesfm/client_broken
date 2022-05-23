@@ -47,6 +47,20 @@
        </widget>
       </item>
       <item>
+       <widget class="QToolButton" name="copyOAuthUrlButton">
+        <property name="text">
+         <string>Copy URL to clipboard</string>
+        </property>
+        <property name="icon">
+         <iconset resource="../../client.qrc">
+          <normaloff>:/client/resources/light/clipboard.svg</normaloff>:/client/resources/light/clipboard.svg</iconset>
+        </property>
+        <property name="toolButtonStyle">
+         <enum>Qt::ToolButtonTextBesideIcon</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QToolButton" name="_accountToolbox">
         <property name="text">
          <string>...</string>
@@ -280,6 +294,8 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="../../client.qrc"/>
+ </resources>
  <connections/>
 </ui>

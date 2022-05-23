@@ -39,19 +39,20 @@
 
 #include <math.h>
 
+#include <QAction>
+#include <QClipboard>
 #include <QDesktopServices>
 #include <QDir>
+#include <QIcon>
+#include <QKeySequence>
 #include <QListWidgetItem>
 #include <QMessageBox>
-#include <QAction>
-#include <QVBoxLayout>
-#include <QTreeView>
-#include <QKeySequence>
-#include <QIcon>
-#include <QVariant>
 #include <QToolTip>
-#include <qstringlistmodel.h>
+#include <QTreeView>
+#include <QVBoxLayout>
+#include <QVariant>
 #include <qpropertyanimation.h>
+#include <qstringlistmodel.h>
 
 #include "account.h"
 #include "askexperimentalvirtualfilesfeaturemessagebox.h"
@@ -190,6 +191,13 @@ AccountSettings::AccountSettings(AccountStatePtr accountState, QWidget *parent)
     ui->openBrowserButton->setVisible(false);
     connect(ui->openBrowserButton, &QToolButton::clicked, this, [this]{
         qobject_cast<HttpCredentialsGui *>(_accountState->account()->credentials())->openBrowser();
+    });
+
+    ui->copyOAuthUrlButton->setVisible(false);
+    connect(ui->copyOAuthUrlButton, &QToolButton::clicked, this, [this] {
+        // TODO: use authorisationLinkAsync
+        auto link = qobject_cast<HttpCredentialsGui *>(_accountState->account()->credentials())->authorisationLink().toString();
+        ocApp()->clipboard()->setText(link);
     });
 }
 
@@ -803,6 +811,7 @@ void AccountSettings::slotAccountStateChanged()
             }
             showConnectionLabel(tr("Connected to %1.").arg(serverWithUser), errors);
             ui->openBrowserButton->setVisible(false);
+            ui->copyOAuthUrlButton->setVisible(false);
             break;
         }
         case AccountState::ServiceUnavailable:
@@ -821,6 +830,7 @@ void AccountSettings::slotAccountStateChanged()
                     this, &AccountSettings::slotAccountStateChanged, Qt::UniqueConnection);
                 showConnectionLabel(tr("Obtaining authorization from the browser."));
                 ui->openBrowserButton->setVisible(true);
+                ui->copyOAuthUrlButton->setVisible(true);
             } else {
                 showConnectionLabel(tr("Connecting to %1...").arg(serverWithUser));
             }
