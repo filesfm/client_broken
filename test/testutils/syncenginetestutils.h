@@ -6,17 +6,16 @@
  */
 #pragma once
 
-#include "accessmanager.h"
 #include "account.h"
+#include "creds/abstractcredentials.h"
+#include "logger.h"
+#include "filesystem.h"
+#include "folder.h"
+#include "syncengine.h"
 #include "common/syncjournaldb.h"
 #include "common/syncjournalfilerecord.h"
 #include "common/vfs.h"
-#include "creds/abstractcredentials.h"
 #include "csync_exclude.h"
-#include "filesystem.h"
-#include "folder.h"
-#include "logger.h"
-#include "syncengine.h"
 #include <cstring>
 
 #include <QDir>
@@ -26,7 +25,6 @@
 #include <cookiejar.h>
 #include <QTimer>
 
-#include <chrono>
 /*
  * TODO: In theory we should use QVERIFY instead of Q_ASSERT for testing, but this
  * only works when directly called from a QTest :-(
@@ -52,11 +50,11 @@ inline QString getFilePathFromUrl(const QUrl &url)
 
 inline QByteArray generateEtag()
 {
-    return QByteArray::number(QDateTime::currentDateTimeUtc().toMSecsSinceEpoch(), 16) + QByteArray::number(QRandomGenerator::global()->generate(), 16);
+    return QByteArray::number(QDateTime::currentDateTimeUtc().toMSecsSinceEpoch(), 16) + QByteArray::number(qrand(), 16);
 }
 inline QByteArray generateFileId()
 {
-    return QByteArray::number(QRandomGenerator::global()->generate(), 16);
+    return QByteArray::number(qrand(), 16);
 }
 
 class PathComponents : public QStringList
@@ -77,23 +75,31 @@ public:
     QString fileName() const { return last(); }
 };
 
+/// None of the methods of the FileModifier have default values!
 class FileModifier
 {
 public:
+    static constexpr int DefaultFileSize = 64;
+    static constexpr char DefaultContentChar = 'X';
+
     virtual ~FileModifier() { }
     virtual void remove(const QString &relativePath) = 0;
-    virtual void insert(const QString &relativePath, qint64 size = 64, char contentChar = 'W') = 0;
-    virtual void setContents(const QString &relativePath, char contentChar) = 0;
-    virtual void appendByte(const QString &relativePath, char contentChar = 0) = 0;
+    virtual void insert(const QString &relativePath, quint64 size = DefaultFileSize, char contentChar = DefaultContentChar) = 0;
+    virtual void setContents(const QString &relativePath, quint64 newSize, char contentChar = DefaultContentChar) = 0;
+    virtual void appendByte(const QString &relativePath, char contentChar = DefaultContentChar) = 0;
     virtual void modifyByte(const QString &relativePath, quint64 offset, char contentChar) = 0;
     virtual void mkdir(const QString &relativePath) = 0;
     virtual void rename(const QString &relativePath, const QString &relativeDestinationDirectory) = 0;
     virtual void setModTime(const QString &relativePath, const QDateTime &modTime) = 0;
+    virtual void incModTime(const QString &relativePath, int secondsToAdd) = 0;
 };
+
+class FakeFolder;
 
 class DiskFileModifier : public FileModifier
 {
     QDir _rootDir;
+    QStringList _processArguments;
 
 public:
     DiskFileModifier(const QString &rootDirPath)
@@ -101,14 +107,18 @@ public:
     {
     }
     void remove(const QString &relativePath) override;
-    void insert(const QString &relativePath, qint64 size = 64, char contentChar = 'W') override;
-    void setContents(const QString &relativePath, char contentChar) override;
-    void appendByte(const QString &relativePath, char contentChar) override;
+    void insert(const QString &relativePath, quint64 size = DefaultFileSize, char contentChar = DefaultContentChar) override;
+    void setContents(const QString &relativePath, quint64 newSize, char contentChar = DefaultContentChar) override;
+    void appendByte(const QString &relativePath, char contentChar = DefaultContentChar) override;
     void modifyByte(const QString &relativePath, quint64 offset, char contentChar) override;
 
     void mkdir(const QString &relativePath) override;
     void rename(const QString &from, const QString &to) override;
     void setModTime(const QString &relativePath, const QDateTime &modTime) override;
+    void incModTime(const QString &relativePath, int secondsToAdd) override;
+
+    bool applyModifications();
+    bool applyModificationsAndSync(FakeFolder &ff, OCC::Vfs::Mode mode) Q_REQUIRED_RESULT;
 };
 
 static inline qint64 defaultLastModified()
@@ -150,11 +160,11 @@ public:
 
     void remove(const QString &relativePath) override;
 
-    void insert(const QString &relativePath, qint64 size = 64, char contentChar = 'W') override;
+    void insert(const QString &relativePath, quint64 size = DefaultFileSize, char contentChar = DefaultContentChar) override;
 
-    void setContents(const QString &relativePath, char contentChar) override;
+    void setContents(const QString &relativePath, quint64 newSize, char contentChar = DefaultContentChar) override;
 
-    void appendByte(const QString &relativePath, char contentChar = 0) override;
+    void appendByte(const QString &relativePath, char contentChar = DefaultContentChar) override;
 
     void modifyByte(const QString &relativePath, quint64 offset, char contentChar) override;
 
@@ -163,6 +173,7 @@ public:
     void rename(const QString &oldPath, const QString &newPath) override;
 
     void setModTime(const QString &relativePath, const QDateTime &modTime) override;
+    void incModTime(const QString &relativePath, int secondsToAdd) override;
 
     /// Return a pointer to the FileInfo, or a nullptr if it doesn't exist
     FileInfo *find(PathComponents pathComponents, const bool invalidateEtags = false);
@@ -454,12 +465,12 @@ class DelayedReply : public OriginalReply
 {
 public:
     template <typename... Args>
-    explicit DelayedReply(const std::chrono::milliseconds delayMS, Args &&...args)
+    explicit DelayedReply(quint64 delayMS, Args &&...args)
         : OriginalReply(std::forward<Args>(args)...)
         , _delayMs(delayMS)
     {
     }
-    std::chrono::milliseconds _delayMs;
+    quint64 _delayMs;
 
     void respond() override
     {
@@ -470,7 +481,7 @@ public:
     }
 };
 
-class FakeAM : public OCC::AccessManager
+class FakeQNAM : public QNetworkAccessManager
 {
 public:
     using Override = std::function<QNetworkReply *(Operation, const QNetworkRequest &, QIODevice *)>;
@@ -484,7 +495,7 @@ private:
     Override _override;
 
 public:
-    FakeAM(FileInfo initialRoot);
+    FakeQNAM(FileInfo initialRoot);
     FileInfo &currentRemoteState() { return _remoteRootFileInfo; }
     FileInfo &uploadState() { return _uploadFileInfo; }
 
@@ -499,15 +510,16 @@ protected:
 
 class FakeCredentials : public OCC::AbstractCredentials
 {
+    QNetworkAccessManager *_qnam;
+
 public:
-    FakeCredentials(OCC::AccessManager *am)
-        : _am { am }
+    FakeCredentials(QNetworkAccessManager *qnam)
+        : _qnam { qnam }
     {
     }
-
     QString authType() const override { return QStringLiteral("test"); }
     QString user() const override { return QStringLiteral("admin"); }
-    OCC::AccessManager *createAM() const override { return _am; }
+    QNetworkAccessManager *createQNAM() const override { return _qnam; }
     bool ready() const override { return true; }
     void fetchFromKeychain() override { }
     void askFromUser() override { }
@@ -515,9 +527,6 @@ public:
     void persist() override { }
     void invalidateToken() override { }
     void forgetSensitiveData() override { }
-
-private:
-    OCC::AccessManager *_am;
 };
 
 class FakeFolder
@@ -525,14 +534,13 @@ class FakeFolder
     QTemporaryDir _tempDir;
     DiskFileModifier _localModifier;
     // FIXME: Clarify ownership, double delete
-    FakeAM *_fakeAm;
+    FakeQNAM *_fakeQnam;
     OCC::AccountPtr _account;
     std::unique_ptr<OCC::SyncJournalDb> _journalDb;
     std::unique_ptr<OCC::SyncEngine> _syncEngine;
-    OCC::Vfs::Mode _vfsMode;
 
 public:
-    FakeFolder(const FileInfo &fileTemplate, OCC::Vfs::Mode vfsMode = OCC::Vfs::Off);
+    FakeFolder(const FileInfo &fileTemplate, OCC::Vfs::Mode vfsMode = OCC::Vfs::Off, bool filesAreDehydrated = false);
 
     void switchToVfs(QSharedPointer<OCC::Vfs> vfs);
 
@@ -541,24 +549,24 @@ public:
     OCC::SyncJournalDb &syncJournal() const { return *_journalDb; }
 
     FileModifier &localModifier() { return _localModifier; }
-    FileInfo &remoteModifier() { return _fakeAm->currentRemoteState(); }
+    FileInfo &remoteModifier() { return _fakeQnam->currentRemoteState(); }
     FileInfo currentLocalState();
 
-    FileInfo currentRemoteState() { return _fakeAm->currentRemoteState(); }
-    FileInfo &uploadState() { return _fakeAm->uploadState(); }
+    FileInfo currentRemoteState() { return _fakeQnam->currentRemoteState(); }
+    FileInfo &uploadState() { return _fakeQnam->uploadState(); }
     FileInfo dbState() const;
 
     struct ErrorList
     {
-        FakeAM *_qnam;
+        FakeQNAM *_qnam;
         void append(const QString &path, int error = 500)
         {
             _qnam->errorPaths().insert(path, error);
         }
         void clear() { _qnam->errorPaths().clear(); }
     };
-    ErrorList serverErrorPaths() { return { _fakeAm }; }
-    void setServerOverride(const FakeAM::Override &override) { _fakeAm->setOverride(override); }
+    ErrorList serverErrorPaths() { return { _fakeQnam }; }
+    void setServerOverride(const FakeQNAM::Override &override) { _fakeQnam->setOverride(override); }
 
     QString localPath() const;
 
@@ -582,10 +590,21 @@ public:
         return execUntilFinished();
     }
 
+    bool applyLocalModificationsAndSync() Q_REQUIRED_RESULT
+    {
+        auto mode = _syncEngine->syncOptions()._vfs->mode();
+        return _localModifier.applyModificationsAndSync(*this, mode);
+    }
+
+    bool applyLocalModificationsWithoutSync() Q_REQUIRED_RESULT
+    {
+        return _localModifier.applyModifications();
+    }
+
     bool isDehydratedPlaceholder(const QString &filePath);
+    QSharedPointer<OCC::Vfs> vfs() const;
 
 private:
-    void startVfs();
     static void toDisk(QDir &dir, const FileInfo &templateFi);
 
     void fromDisk(QDir &dir, FileInfo &templateFi);
@@ -670,3 +689,51 @@ inline char *printDbData(const FileInfo &fi)
         addFilesDbData(files, fi);
     return QTest::toString(QStringLiteral("FileInfo with %1 files(%2)").arg(files.size()).arg(files.join(QStringLiteral(", "))));
 }
+
+struct OperationCounter
+{
+    int nGET = 0;
+    int nPUT = 0;
+    int nMOVE = 0;
+    int nDELETE = 0;
+
+    OperationCounter() = delete;
+    OperationCounter(const OperationCounter &) = delete;
+    OperationCounter(OperationCounter &&) = delete;
+    void operator=(OperationCounter const &) = delete;
+    void operator=(OperationCounter &&) = delete;
+
+    void reset()
+    {
+        nGET = 0;
+        nPUT = 0;
+        nMOVE = 0;
+        nDELETE = 0;
+    }
+
+    auto functor()
+    {
+        return [&](QNetworkAccessManager::Operation op, const QNetworkRequest &req, QIODevice *) {
+            if (op == QNetworkAccessManager::GetOperation) {
+                ++nGET;
+            } else if (op == QNetworkAccessManager::PutOperation) {
+                ++nPUT;
+            } else if (op == QNetworkAccessManager::DeleteOperation) {
+                ++nDELETE;
+            } else if (req.attribute(QNetworkRequest::CustomVerbAttribute) == QLatin1String("MOVE")) {
+                ++nMOVE;
+            }
+            return nullptr;
+        };
+    }
+
+    OperationCounter(FakeFolder &fakeFolder)
+    {
+        fakeFolder.setServerOverride(functor());
+    }
+
+    friend inline QDebug operator<<(QDebug dbg, const OperationCounter &oc)
+    {
+        return dbg << "nGET:" << oc.nGET << " nPUT:" << oc.nPUT << " nMOVE:" << oc.nMOVE << " nDELETE:" << oc.nDELETE;
+    }
+};

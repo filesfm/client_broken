@@ -1,0 +1,99 @@
+From 29a2d865171a00af0202b2b426e7ef7cac5f0a24 Mon Sep 17 00:00:00 2001
+From: Erik Verbruggen <erik@verbruggen.consulting>
+Date: Wed, 2 Feb 2022 16:16:17 +0100
+Subject: [PATCH] Only set valid icons on top-level windows
+
+Also warn when an icon is null.
+---
+ src/gui/application.cpp       |  7 ++++++-
+ src/gui/guiutility.cpp        |  6 +++++-
+ src/gui/settingsdialog.cpp    |  7 ++++++-
+ src/gui/updater/ocupdater.cpp | 12 ++++++++++--
+ 4 files changed, 27 insertions(+), 5 deletions(-)
+
+diff --git a/src/gui/application.cpp b/src/gui/application.cpp
+index 5bde01bbd..e3a96f4e4 100644
+--- a/src/gui/application.cpp
++++ b/src/gui/application.cpp
+@@ -239,7 +239,12 @@ Application::Application(int &argc, char **argv)
+     //    setOrganizationName(QLatin1String(APPLICATION_VENDOR));
+     setOrganizationDomain(QLatin1String(APPLICATION_REV_DOMAIN));
+     setApplicationName(_theme->appName());
+-    setWindowIcon(_theme->applicationIcon());
++    QIcon appIcon = _theme->applicationIcon();
++    if (appIcon.isNull()) {
++        qCWarning(lcApplication) << "Application icon cannot be loaded!";
++    } else {
++        setWindowIcon(appIcon);
++    }
+ 
+     // migrate old configuration files if necessary
+     migrateConfigFile(this);
+diff --git a/src/gui/guiutility.cpp b/src/gui/guiutility.cpp
+index 00a9e2e93..6150b6b00 100644
+--- a/src/gui/guiutility.cpp
++++ b/src/gui/guiutility.cpp
+@@ -196,7 +196,11 @@ QIcon Utility::getCoreIcon(const QString &icon_name)
+         return {};
+     }
+     const QString path = Theme::instance()->isUsingDarkTheme() ? QStringLiteral("dark") : QStringLiteral("light");
+-    const QIcon icon(QStringLiteral(":/client/resources/%1/%2").arg(path, icon_name));
++    auto iconName = QStringLiteral(":/client/resources/%1/%2").arg(path, icon_name);
++    const QIcon icon(iconName);
++    if (icon.isNull()) {
++        qCWarning(lcUtility) << "Cannot find icon" << iconName;
++    }
+     Q_ASSERT(!icon.isNull());
+     return icon;
+ }
+diff --git a/src/gui/settingsdialog.cpp b/src/gui/settingsdialog.cpp
+index 01ebffc9b..f85f20e33 100644
+--- a/src/gui/settingsdialog.cpp
++++ b/src/gui/settingsdialog.cpp
+@@ -165,7 +165,12 @@ public:
+     void updateIcon()
+     {
+         if (!_iconName.isEmpty()) {
+-            setIcon(Utility::getCoreIcon(_iconName));
++            QIcon icon = Utility::getCoreIcon(_iconName);
++            if (icon.isNull()) {
++                qWarning() << "Cannot load icon" << _iconName;
++            } else {
++                setIcon(icon);
++            }
+         }
+     }
+ 
+diff --git a/src/gui/updater/ocupdater.cpp b/src/gui/updater/ocupdater.cpp
+index 8d94b7538..1a0552a7b 100644
+--- a/src/gui/updater/ocupdater.cpp
++++ b/src/gui/updater/ocupdater.cpp
+@@ -384,7 +384,11 @@ void NSISUpdater::showNoUrlDialog(const UpdateInfo &info)
+     QIcon infoIcon = msgBox->style()->standardIcon(QStyle::SP_MessageBoxInformation);
+     int iconSize = msgBox->style()->pixelMetric(QStyle::PM_MessageBoxIconSize);
+ 
+-    msgBox->setWindowIcon(infoIcon);
++    if (infoIcon.isNull()) {
++        qCWarning(lcUpdater) << "SP_MessageBoxInformation cannot be loaded!";
++    } else {
++        msgBox->setWindowIcon(infoIcon);
++    }
+ 
+     QVBoxLayout *layout = new QVBoxLayout(msgBox);
+     QHBoxLayout *hlayout = new QHBoxLayout;
+@@ -435,7 +439,11 @@ void NSISUpdater::showUpdateErrorDialog(const QString &targetVersion)
+     QIcon infoIcon = msgBox->style()->standardIcon(QStyle::SP_MessageBoxInformation);
+     int iconSize = msgBox->style()->pixelMetric(QStyle::PM_MessageBoxIconSize);
+ 
+-    msgBox->setWindowIcon(infoIcon);
++    if (infoIcon.isNull()) {
++        qCWarning(lcUpdater) << "SP_MessageBoxInformation cannot be loaded!";
++    } else {
++        msgBox->setWindowIcon(infoIcon);
++    }
+ 
+     QVBoxLayout *layout = new QVBoxLayout(msgBox);
+     QHBoxLayout *hlayout = new QHBoxLayout;
+-- 
+2.33.0.windows.2
+

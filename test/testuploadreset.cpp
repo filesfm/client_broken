@@ -19,11 +19,33 @@ class TestUploadReset : public QObject
     Q_OBJECT
 
 private slots:
+    void initTestCase_data()
+    {
+        QTest::addColumn<Vfs::Mode>("vfsMode");
+        QTest::addColumn<bool>("filesAreDehydrated");
+
+        QTest::newRow("Vfs::Off") << Vfs::Off << false;
+
+        if (isVfsPluginAvailable(Vfs::WindowsCfApi)) {
+            QTest::newRow("Vfs::WindowsCfApi dehydrated") << Vfs::WindowsCfApi << true;
+
+            // TODO: the hydrated version will fail due to an issue in the winvfs plugin, so leave it disabled for now.
+            // QTest::newRow("Vfs::WindowsCfApi hydrated") << Vfs::WindowsCfApi << false;
+        } else if (Utility::isWindows()) {
+            QWARN("Skipping Vfs::WindowsCfApi");
+        }
+    }
+
 
     // Verify that the chunked transfer eventually gets reset with the new chunking
-    void testFileUploadNg() {
-        FakeFolder fakeFolder{FileInfo::A12_B12_C12_S12()};
+    void testFileUploadNg()
+    {
+        QFETCH_GLOBAL(Vfs::Mode, vfsMode);
+        QFETCH_GLOBAL(bool, filesAreDehydrated);
 
+        FakeFolder fakeFolder(FileInfo::A12_B12_C12_S12(), vfsMode, filesAreDehydrated);
+
+<<<<<<< HEAD
         auto httpErrorCodesThatResetFailingChunkedUploadsCapabilities = [](const QVariantList &codes) {
             auto cap = TestUtils::testCapabilities();
             auto dav = cap["dav"].toMap();
@@ -32,6 +54,9 @@ private slots:
             return cap;
         };
         fakeFolder.syncEngine().account()->setCapabilities(httpErrorCodesThatResetFailingChunkedUploadsCapabilities({ 500 }));
+=======
+        fakeFolder.syncEngine().account()->setCapabilities({ { "dav", QVariantMap { { "chunking", "1.0" }, { "httpErrorCodesThatResetFailingChunkedUploads", QVariantList { 500 } } } } });
+>>>>>>> 88386c6b7 (Enable VFS testing in more tests)
 
         const int size = 100 * 1000 * 1000; // 100 MB
         fakeFolder.localModifier().insert("A/a0", size);
@@ -49,28 +74,28 @@ private slots:
         fakeFolder.uploadState().mkdir("1");
         fakeFolder.serverErrorPaths().append("1/.file");
 
-        QVERIFY(!fakeFolder.syncOnce());
+        QVERIFY(!fakeFolder.applyLocalModificationsAndSync());
 
         uploadInfo = fakeFolder.syncEngine().journal()->getUploadInfo("A/a0");
         QCOMPARE(uploadInfo._errorCount, 1);
         QCOMPARE(uploadInfo._transferid, 1U);
 
         fakeFolder.syncEngine().journal()->wipeErrorBlacklist();
-        QVERIFY(!fakeFolder.syncOnce());
+        QVERIFY(!fakeFolder.applyLocalModificationsAndSync());
 
         uploadInfo = fakeFolder.syncEngine().journal()->getUploadInfo("A/a0");
         QCOMPARE(uploadInfo._errorCount, 2);
         QCOMPARE(uploadInfo._transferid, 1U);
 
         fakeFolder.syncEngine().journal()->wipeErrorBlacklist();
-        QVERIFY(!fakeFolder.syncOnce());
+        QVERIFY(!fakeFolder.applyLocalModificationsAndSync());
 
         uploadInfo = fakeFolder.syncEngine().journal()->getUploadInfo("A/a0");
         QCOMPARE(uploadInfo._errorCount, 3);
         QCOMPARE(uploadInfo._transferid, 1U);
 
         fakeFolder.syncEngine().journal()->wipeErrorBlacklist();
-        QVERIFY(!fakeFolder.syncOnce());
+        QVERIFY(!fakeFolder.applyLocalModificationsAndSync());
 
         uploadInfo = fakeFolder.syncEngine().journal()->getUploadInfo("A/a0");
         QCOMPARE(uploadInfo._errorCount, 0);
