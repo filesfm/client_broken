@@ -1,7 +1,7 @@
 # ownCloud Desktop Client setup
 
-Official setup document: https://doc.owncloud.com/desktop/next/appendices/building.html.
-Official github repository: https://github.com/owncloud/client.
+#### Official setup document: https://doc.owncloud.com/desktop/next/appendices/building.html.
+#### Official github repository: https://github.com/owncloud/client.
 
 ## Setting up KDE Craft
 
@@ -38,30 +38,32 @@ set(CMAKE_USE_OPENSSL ON)
 
 ## Commands for developing
 
-Open PowerShell as admin
+#### Open PowerShell as admin
 *	C:\CraftRoot\craft\craftenv.ps1 (allows to work with craft)
-If everything is up to date:
+#### If everything is up to date:
 *	craft owncloud-client
-If changes have been made in the working branch:
+#### If changes have been made in the working branch:
 *	craft --install-deps owncloud-client
 *	craft --fetch owncloud-client
 *	craft --configure --make --install 
 *	craft owncloud-client
-To switch branches(for example to build the 2.10 branch):
+#### To switch branches(for example to build the 2.10 branch):
 *	git checkout 2.10
 *	craft --set version=2.10 owncloud-client
 
-To compile locally modified changes:
+#### To compile locally modified changes:
 *	craft --compile --install --qmerge owncloud-client
-The compiled result can be found under "C:\CraftRoot\build\owncloud\owncloud-client\work\build\bin" and changes tested from C:\CraftRoot\bin
+#### The compiled result can be found under "C:\CraftRoot\build\owncloud\owncloud-client\work\build\bin" and changes tested from C:\CraftRoot\bin
 
-To create an installer execute: 
+#### To create an installer execute: 
 *	craft --package owncloud-client
-The result can be found under "C:\CraftRoot\tmp"
+#### The result can be found under "C:\CraftRoot\tmp"
 
 # Local code signing
 
 1)	Edit "C:\CraftRoot\etc\CraftSettings.ini", navigate to [CodeSigning] and change it to:
+
+```
 Enabled = True
 Protected = False
 SignCache = ${CodeSigning:Enabled}
@@ -73,6 +75,7 @@ Country = LV
 State = 
 PostalCode =
 
+```
 2)	Run this script in PowerShell as admin:
 
 ``` 
