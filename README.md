@@ -1,7 +1,7 @@
 # ownCloud Desktop Client setup
 
-Official setup document: https://doc.owncloud.com/desktop/next/appendices/building.html
-Official github repository: https://github.com/owncloud/client
+Official setup document: https://doc.owncloud.com/desktop/next/appendices/building.html.
+Official github repository: https://github.com/owncloud/client.
 
 ## Setting up KDE Craft
 
@@ -18,7 +18,7 @@ Open PowerShell as admin and run the following:
 1.	Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 2.	iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/KDE/craft/master/setup/install_craft.ps1'))
 
-**IMPORTANT**: Choose Microsoft Visual Studio 2019 as the compiler for everything else accept all defaults
+**IMPORTANT**: Choose Microsoft Visual Studio 2019 as the compiler for everything else accept all defaults.
 
 ## Launch the KDE Craft Environment
 
@@ -27,14 +27,14 @@ Open PowerShell as admin and run the following:
 5.	craft -i libs/zlib
 6.	craft -i libs/openssl
 7.	craft --no-cache -i libs/libcurl
-Open "C:\CraftRoot\build\libs\libcurl\work\curl-7.78.0\CMakeLists.txt" 
+8.	Open "C:\CraftRoot\build\libs\libcurl\work\curl-7.78.0\CMakeLists.txt" 
 find
 cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
 after it add
 set(CMAKE_USE_OPENSSL ON)
-8.	craft --compile libs/libcurl
-9.	craft --add-blueprint-repository https://github.com/filesfm/craft-blueprints-owncloud.git
-10.	craft owncloud-client
+9.	craft --compile libs/libcurl
+10.	craft --add-blueprint-repository https://github.com/filesfm/craft-blueprints-owncloud.git
+11.	craft owncloud-client
 
 ## Commands for developing
 
@@ -74,6 +74,8 @@ State =
 PostalCode =
 
 2)	Run this script in PowerShell as admin:
+
+``` 
 
 #
 # This script will create and install two certificates:
@@ -121,5 +123,7 @@ Remove-Item -Force "cert:\CurrentUser\My\$($rootCert.Thumbprint)"
 
 # Import certificate.
 Import-PfxCertificate -FilePath MySPC.pfx cert:\CurrentUser\My -Password $password -Exportable
+
+```
 
 3)	Rename MyCA.pfx to mycert.pfx and place it in C:\CraftRoot
