@@ -1,79 +1,132 @@
-# ownCloud Desktop Client
+# ownCloud Desktop Client setup
 
-[![Build Status](https://drone.owncloud.com/api/badges/owncloud/client/status.svg)](https://drone.owncloud.com/owncloud/client) [![Build Status](https://github.com/owncloud/client/workflows/ownCloud%20CI/badge.svg)](https://github.com/owncloud/client/actions)
+#### Official setup document: https://doc.owncloud.com/desktop/next/appendices/building.html.
+#### Official github repository: https://github.com/owncloud/client.
 
+## Setting up KDE Craft
 
-## Introduction
+To install KDE Craft, Python 3.6+, Microsoft Visual Studio 2019 and PowerShell 5.0+ must be installed.
 
-The ownCloud Desktop Client is a tool to synchronize files from ownCloud Server
-with your computer.
+For Microsoft Visual Studio 2019, make sure the following components are selected at the minimum:
+*	Desktop Development with C++
+*	C++ ATL 
+*	Windows SDK
 
-## Download
+## Install KDE Craft
 
-### Binary packages
+Open PowerShell as admin and run the following:
+1.	Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+2.	iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/KDE/craft/master/setup/install_craft.ps1'))
 
-* Refer to the download page https://owncloud.org/download/#owncloud-desktop-client
+**IMPORTANT**: Choose Microsoft Visual Studio 2019 as the compiler but for everything else accept the defaults.
 
-### Source code
+## Launch the KDE Craft Environment
 
-The ownCloud Desktop Client is developed in Git. Since Git makes it easy to
-fork and improve the source code and to adapt it to your need, many copies
-can be found on the Internet, in particular on GitHub. However, the
-authoritative repository maintained by the developers is located at
-https://github.com/owncloud/client.
+3.	C:\CraftRoot\craft\craftenv.ps1
+4.	craft nsis
+5.	craft -i libs/zlib
+6.	craft -i libs/openssl
+7.	craft --no-cache -i libs/libcurl
+8.	Open "C:\CraftRoot\build\libs\libcurl\work\curl-7.78.0\CMakeLists.txt" 
+find
+cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
+after it add
+set(CMAKE_USE_OPENSSL ON)
+9.	craft --compile libs/libcurl
+10.	craft --add-blueprint-repository https://github.com/filesfm/craft-blueprints-owncloud.git
+11.	craft owncloud-client
 
-## Building the source code
+## Commands for developing
 
-[Building the Client](https://doc.owncloud.org/desktop/building.html)
-in the ownCloud Desktop Client manual.
+#### Open PowerShell as admin
+*	C:\CraftRoot\craft\craftenv.ps1 (allows to work with craft)
+#### If everything is up to date:
+*	craft owncloud-client
+#### If changes have been made in the working branch:
+*	craft --install-deps owncloud-client
+*	craft --fetch owncloud-client
+*	craft --configure --make --install 
+*	craft owncloud-client
+#### To switch branches(for example to build the 2.10 branch):
+*	git checkout 2.10
+*	craft --set version=2.10 owncloud-client
 
-## Reporting issues and contributing
+#### To compile locally modified changes:
+*	craft --compile --install --qmerge owncloud-client
+_The compiled result can be found under "C:\CraftRoot\build\owncloud\owncloud-client\work\build\bin" and changes tested from C:\CraftRoot\bin_
 
-If you find any bugs or have any suggestion for improvement, please
-file an issue at https://github.com/owncloud/client/issues. Do not
-contact the authors directly by mail, as this increases the chance
-of your report being lost.
+#### To create an installer execute: 
+*	craft --package owncloud-client
+_The result can be found under "C:\CraftRoot\tmp"_
 
-If you created a patch, please submit a [Pull
-Request](https://github.com/owncloud/client/pulls). For non-trivial
-patches, we need you to sign the [Contributor
-Agreement](https://owncloud.com/contribute/join-the-development/contributor-agreement/) before
-we can accept your patch.
+# Local code signing
 
-If you want to contact us, e.g. before starting a more complex feature,
-you can join us at
-[RocketChat](https://talk.owncloud.com/channel/desktop).
+1)	Edit "C:\CraftRoot\etc\CraftSettings.ini", navigate to [CodeSigning] and change it to:
 
-## Maintainers and Contributors
+```
+Enabled = True
+Protected = False
+SignCache = ${CodeSigning:Enabled}
+CommonName = Files.fm
+Organization = Files.fm
+Street = 
+Locality = Riga
+Country = LV
+State = 
+PostalCode =
 
-The current maintainers of this repository are:
+```
+2)	Run this script in PowerShell as admin:
 
-* Hannah von Reth <hannah.vonreth@owncloud.com>
-* Dominik Schmidt <dev@dominik-schmidt.de>
+``` 
 
-ownCloud Desktop Client is developed by the ownCloud community and [receives
-patches from a variety of authors](https://github.com/owncloud/client/graphs/contributors).
+#
+# This script will create and install two certificates:
+#     1. `MyCA.cer`: A self-signed root authority certificate. 
+#     2. `MySPC.cer`: The cerificate to sign code in 
+#         a development environment (signed with `MyCA.cer`).
+# 
+# No user interaction is needed (unattended). 
+# Powershell 4.0 or higher is required.
+#
 
-Past maintainers:
+# Define the expiration date for certificates.
+$notAfter = (Get-Date).AddYears(10)
 
-* Markus Goetz <guruz@owncloud.com>
-* Olivier Goffart <ogoffart@owncloud.com>
-* Christian Kamm <mail@ckamm.de>
-* Thomas Müller <thomas.mueller@owncloud.com>
-* Klaas Freitag <freitag@owncloud.com>
-* Daniel Molkentin <daniel@molkentin.de>
-* Andreas Schneider <asn@cryptomilk.org>
+# Create a self-signed root Certificate Authority (CA).
+$rootCert = New-SelfSignedCertificate -KeyExportPolicy Exportable -CertStoreLocation Cert:\CurrentUser\My -DnsName "My CA" -NotAfter $notAfter -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.3", "2.5.29.19={text}CA=1") -KeyusageProperty All -KeyUsage CertSign, CRLSign, DigitalSignature
 
-## License
+# Export the CA private key.
+[System.Security.SecureString] $password = ConvertTo-SecureString -String "passwordx" -Force -AsPlainText
+[String] $rootCertPath = Join-Path -Path cert:\CurrentUser\My\ -ChildPath "$($rootcert.Thumbprint)"
+Export-PfxCertificate -Cert $rootCertPath -FilePath "MyCA.pfx" -Password $password
+Export-Certificate -Cert $rootCertPath -FilePath "MyCA.crt"
 
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+# Create an end certificate signed by our CA.
+$cert = New-SelfSignedCertificate -CertStoreLocation Cert:\LocalMachine\My -DnsName "Files.fm" -NotAfter $notAfter -Signer $rootCert -Type CodeSigningCert -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.3", "2.5.29.19={text}CA=0&pathlength=0")
 
-    This program is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-    or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
-    for more details.
+# Save the signed certificate with private key into a PFX file and just the public key into a CRT file.
+[String] $certPath = Join-Path -Path cert:\LocalMachine\My\ -ChildPath "$($cert.Thumbprint)"
+Export-PfxCertificate -Cert $certPath -FilePath "MySPC.pfx" -Password $password
+Export-Certificate -Cert $certPath -FilePath "MySPC.crt"
 
+# Add MyCA certificate to the Trusted Root Certification Authorities.
+$pfx = new-object System.Security.Cryptography.X509Certificates.X509Certificate2
+$pfx.import("MyCA.pfx", $password, "Exportable,PersistKeySet")
+$store = new-object System.Security.Cryptography.X509Certificates.X509Store(
+    [System.Security.Cryptography.X509Certificates.StoreName]::Root,
+    "localmachine"
+)
+$store.open("MaxAllowed")
+$store.add($pfx)
+$store.close()
 
+# Remove MyCA from CurrentUser to avoid issues when signing with "signtool.exe /a ..."
+Remove-Item -Force "cert:\CurrentUser\My\$($rootCert.Thumbprint)"
+
+# Import certificate.
+Import-PfxCertificate -FilePath MySPC.pfx cert:\CurrentUser\My -Password $password -Exportable
+
+```
+
+3)	Rename MyCA.pfx to mycert.pfx and place it in C:\CraftRoot
