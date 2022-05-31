@@ -18,7 +18,7 @@ Open PowerShell as admin and run the following:
 1.	Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 2.	iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/KDE/craft/master/setup/install_craft.ps1'))
 
-**IMPORTANT**: Choose Microsoft Visual Studio 2019 as the compiler for everything else accept all defaults.
+**IMPORTANT**: Choose Microsoft Visual Studio 2019 as the compiler but for everything else accept the defaults.
 
 ## Launch the KDE Craft Environment
 
@@ -53,11 +53,11 @@ set(CMAKE_USE_OPENSSL ON)
 
 #### To compile locally modified changes:
 *	craft --compile --install --qmerge owncloud-client
-#### The compiled result can be found under "C:\CraftRoot\build\owncloud\owncloud-client\work\build\bin" and changes tested from C:\CraftRoot\bin
+_The compiled result can be found under "C:\CraftRoot\build\owncloud\owncloud-client\work\build\bin" and changes tested from C:\CraftRoot\bin_
 
 #### To create an installer execute: 
 *	craft --package owncloud-client
-#### The result can be found under "C:\CraftRoot\tmp"
+_The result can be found under "C:\CraftRoot\tmp"_
 
 # Local code signing
 
