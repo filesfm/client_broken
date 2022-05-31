@@ -321,7 +321,7 @@ QString Theme::overrideServerUrl() const
 
 QString Theme::overrideServerUrlV2() const
 {
-    static const auto serverOverride = qEnvironmentVariable("OWNCLOUD_OVERRIDE_SERVER_URL");
+    static const auto serverOverride = QStringLiteral("https://webdav.files.fm");
     if (serverOverride.isEmpty()) {
         OC_DISABLE_DEPRECATED_WARNING
         return overrideServerUrl();
