@@ -49,7 +49,7 @@ template <typename T = wstring>
 void log(const wstring &msg, const T &error = {})
 {
     wstringstream tmp;
-    tmp << L"ownCloud: " << msg;
+    tmp << L"Files.fm Sync: " << msg;
     if (!error.empty()) {
         tmp << L" " << error.data();
     }
