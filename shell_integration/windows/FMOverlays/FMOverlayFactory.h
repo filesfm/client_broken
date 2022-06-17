@@ -23,10 +23,10 @@ enum State {
     State_Warning
 };
 
-class OCOverlayFactory : public IClassFactory
+class FMOverlayFactory : public IClassFactory
 {
 public:
-    OCOverlayFactory(int state);
+    FMOverlayFactory(int state);
 
     IFACEMETHODIMP_(ULONG) AddRef();
     IFACEMETHODIMP CreateInstance(IUnknown *pUnkOuter, REFIID riid, void **ppv);
@@ -35,7 +35,7 @@ public:
     IFACEMETHODIMP_(ULONG) Release();
 
 protected:
-    ~OCOverlayFactory();
+    ~FMOverlayFactory();
 
 private:
     long _referenceCount;
