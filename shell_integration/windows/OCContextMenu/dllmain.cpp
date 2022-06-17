@@ -79,11 +79,11 @@ STDAPI DllRegisterServer(void)
 
 	// Register the component.
 	hr = OCContextMenuRegHandler::RegisterInprocServer(szModule, CLSID_FileContextMenuExt,
-		L"OCContextMenuHandler Class",	L"Apartment");
+		L"FMContextMenuHandler Class",	L"Apartment");
 	if (SUCCEEDED(hr))	{
 		// Register the context menu handler. The context menu handler is 
 		// associated with the .cpp file class.
-		hr = OCContextMenuRegHandler::RegisterShellExtContextMenuHandler(L"AllFileSystemObjects", CLSID_FileContextMenuExt, L"OCContextMenuHandler");
+		hr = OCContextMenuRegHandler::RegisterShellExtContextMenuHandler(L"AllFileSystemObjects", CLSID_FileContextMenuExt, L"FMContextMenuHandler");
 	}
 
 	return hr;
@@ -103,7 +103,7 @@ STDAPI DllUnregisterServer(void)
 	hr = OCContextMenuRegHandler::UnregisterInprocServer(CLSID_FileContextMenuExt);
 	if (SUCCEEDED(hr))	{
 		// Unregister the context menu handler.
-		hr = OCContextMenuRegHandler::UnregisterShellExtContextMenuHandler(L"AllFileSystemObjects", L"OCContextMenuHandler");
+		hr = OCContextMenuRegHandler::UnregisterShellExtContextMenuHandler(L"AllFileSystemObjects", L"FMContextMenuHandler");
 	}
 
 	return hr;
