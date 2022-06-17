@@ -12,7 +12,7 @@
 * details.
 */
 
-#include "FMContextMenuRegHandler.h"
+#include "OCContextMenuRegHandler.h"
 #include "RegDelnode.h"
 #include <strsafe.h>
 #include <objbase.h>
@@ -78,7 +78,7 @@ HRESULT GetHKCRRegistryKeyAndValue(PCWSTR pszSubKey, PCWSTR pszValueName, PWSTR 
 
 }
 
-HRESULT FMContextMenuRegHandler::RegisterInprocServer(PCWSTR pszModule, const CLSID& clsid, PCWSTR pszFriendlyName, PCWSTR pszThreadModel)
+HRESULT OCContextMenuRegHandler::RegisterInprocServer(PCWSTR pszModule, const CLSID& clsid, PCWSTR pszFriendlyName, PCWSTR pszThreadModel)
 {
     if (pszModule == NULL || pszThreadModel == NULL)
     {
@@ -126,7 +126,7 @@ HRESULT FMContextMenuRegHandler::RegisterInprocServer(PCWSTR pszModule, const CL
     return hr;
 }
 
-HRESULT FMContextMenuRegHandler::UnregisterInprocServer(const CLSID& clsid)
+HRESULT OCContextMenuRegHandler::UnregisterInprocServer(const CLSID& clsid)
 {
     HRESULT hr = S_OK;
 
@@ -146,7 +146,7 @@ HRESULT FMContextMenuRegHandler::UnregisterInprocServer(const CLSID& clsid)
 }
 
 
-HRESULT FMContextMenuRegHandler::RegisterShellExtContextMenuHandler(
+HRESULT OCContextMenuRegHandler::RegisterShellExtContextMenuHandler(
     PCWSTR pszFileType, const CLSID& clsid, PCWSTR pszFriendlyName)
 {
     if (pszFileType == NULL)
@@ -190,7 +190,7 @@ HRESULT FMContextMenuRegHandler::RegisterShellExtContextMenuHandler(
     return hr;
 }
 
-HRESULT FMContextMenuRegHandler::UnregisterShellExtContextMenuHandler(
+HRESULT OCContextMenuRegHandler::UnregisterShellExtContextMenuHandler(
     PCWSTR pszFileType, PCWSTR pszFriendlyName)
 {
     if (pszFileType == NULL)

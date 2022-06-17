@@ -12,9 +12,9 @@
  * details.
  */
 
-#include "FMOverlay.h"
+#include "OCOverlay.h"
 
-#include "FMOverlayFactory.h"
+#include "OCOverlayFactory.h"
 #include "StringUtil.h"
 
 #include "UtilConstants.h"
@@ -50,23 +50,23 @@ RemotePathChecker *getGlobalChecker()
 }
 
 }
-FMOverlay::FMOverlay(int state) 
+OCOverlay::OCOverlay(int state) 
     : _referenceCount(1)
     , _state(state)
 {
 }
 
-FMOverlay::~FMOverlay(void)
+OCOverlay::~OCOverlay(void)
 {
 }
 
 
-IFACEMETHODIMP_(ULONG) FMOverlay::AddRef()
+IFACEMETHODIMP_(ULONG) OCOverlay::AddRef()
 {
     return InterlockedIncrement(&_referenceCount);
 }
 
-IFACEMETHODIMP FMOverlay::QueryInterface(REFIID riid, void **ppv)
+IFACEMETHODIMP OCOverlay::QueryInterface(REFIID riid, void **ppv)
 {
     HRESULT hr = S_OK;
 
@@ -88,7 +88,7 @@ IFACEMETHODIMP FMOverlay::QueryInterface(REFIID riid, void **ppv)
     return hr;
 }
 
-IFACEMETHODIMP_(ULONG) FMOverlay::Release()
+IFACEMETHODIMP_(ULONG) OCOverlay::Release()
 {
     ULONG cRef = InterlockedDecrement(&_referenceCount);
     if (0 == cRef)
@@ -99,7 +99,7 @@ IFACEMETHODIMP_(ULONG) FMOverlay::Release()
     return cRef;
 }
 
-IFACEMETHODIMP FMOverlay::GetPriority(int *pPriority)
+IFACEMETHODIMP OCOverlay::GetPriority(int *pPriority)
 {
     // this defines which handler has prededence, so
     // we order this in terms of likelyhood
@@ -121,7 +121,7 @@ IFACEMETHODIMP FMOverlay::GetPriority(int *pPriority)
     return S_OK;
 }
 
-IFACEMETHODIMP FMOverlay::IsMemberOf(PCWSTR pwszPath, DWORD dwAttrib)
+IFACEMETHODIMP OCOverlay::IsMemberOf(PCWSTR pwszPath, DWORD dwAttrib)
 {
     RemotePathChecker* checker = getGlobalChecker();
     std::shared_ptr<const std::vector<std::wstring>> watchedDirectories = checker->WatchedDirectories();
@@ -149,7 +149,7 @@ IFACEMETHODIMP FMOverlay::IsMemberOf(PCWSTR pwszPath, DWORD dwAttrib)
     return MAKE_HRESULT(state == _state ? S_OK : S_FALSE, 0, 0);
 }
 
-IFACEMETHODIMP FMOverlay::GetOverlayInfo(PWSTR pwszIconFile, int cchMax, int *pIndex, DWORD *pdwFlags)
+IFACEMETHODIMP OCOverlay::GetOverlayInfo(PWSTR pwszIconFile, int cchMax, int *pIndex, DWORD *pdwFlags)
 {
     *pIndex = 0;
     *pdwFlags = ISIOI_ICONFILE | ISIOI_ICONINDEX;

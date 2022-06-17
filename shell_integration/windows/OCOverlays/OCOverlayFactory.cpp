@@ -15,23 +15,23 @@
 #include <windows.h>
 #include <new>
 
-#include "FMOverlayFactory.h"
-#include "FMOverlay.h"
+#include "OCOverlayFactory.h"
+#include "OCOverlay.h"
 
 extern long dllReferenceCount;
 
-FMOverlayFactory::FMOverlayFactory(int state)
+OCOverlayFactory::OCOverlayFactory(int state)
     : _referenceCount(1), _state(state)
 {
     InterlockedIncrement(&dllReferenceCount);
 }
 
-FMOverlayFactory::~FMOverlayFactory()
+OCOverlayFactory::~OCOverlayFactory()
 {
     InterlockedDecrement(&dllReferenceCount);
 }
 
-IFACEMETHODIMP FMOverlayFactory::QueryInterface(REFIID riid, void **ppv)
+IFACEMETHODIMP OCOverlayFactory::QueryInterface(REFIID riid, void **ppv)
 {
     HRESULT hResult = S_OK;
 
@@ -50,12 +50,12 @@ IFACEMETHODIMP FMOverlayFactory::QueryInterface(REFIID riid, void **ppv)
     return hResult;
 }
 
-IFACEMETHODIMP_(ULONG) FMOverlayFactory::AddRef()
+IFACEMETHODIMP_(ULONG) OCOverlayFactory::AddRef()
 {
     return InterlockedIncrement(&_referenceCount);
 }
 
-IFACEMETHODIMP_(ULONG) FMOverlayFactory::Release()
+IFACEMETHODIMP_(ULONG) OCOverlayFactory::Release()
 {
     ULONG cRef = InterlockedDecrement(&_referenceCount);
 
@@ -66,7 +66,7 @@ IFACEMETHODIMP_(ULONG) FMOverlayFactory::Release()
     return cRef;
 }
 
-IFACEMETHODIMP FMOverlayFactory::CreateInstance(
+IFACEMETHODIMP OCOverlayFactory::CreateInstance(
     IUnknown *pUnkOuter, REFIID riid, void **ppv)
 {
     HRESULT hResult = CLASS_E_NOAGGREGATION;
@@ -74,7 +74,7 @@ IFACEMETHODIMP FMOverlayFactory::CreateInstance(
     if (pUnkOuter != NULL) { return hResult; }
 
     hResult = E_OUTOFMEMORY;
-    FMOverlay *lrOverlay = new (std::nothrow) FMOverlay(_state);
+    OCOverlay *lrOverlay = new (std::nothrow) OCOverlay(_state);
     if (!lrOverlay) { return hResult; }
 
     hResult = lrOverlay->QueryInterface(riid, ppv);
@@ -83,7 +83,7 @@ IFACEMETHODIMP FMOverlayFactory::CreateInstance(
     return hResult;
 }
 
-IFACEMETHODIMP FMOverlayFactory::LockServer(BOOL fLock)
+IFACEMETHODIMP OCOverlayFactory::LockServer(BOOL fLock)
 {
     if (fLock) {
         InterlockedIncrement(&dllReferenceCount);
