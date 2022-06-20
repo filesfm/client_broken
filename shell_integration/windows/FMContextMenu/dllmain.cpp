@@ -14,8 +14,8 @@
 
 #include <windows.h>
 #include <Guiddef.h>
-#include "OCContextMenuRegHandler.h"
-#include "OCContextMenuFactory.h"
+#include "FMContextMenuRegHandler.h"
+#include "FMContextMenuFactory.h"
 
 // gdiplus min/max
 using namespace std;
@@ -52,7 +52,7 @@ STDAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, void **ppv)
 	if (IsEqualCLSID(CLSID_FileContextMenuExt, rclsid))	{
 		hr = E_OUTOFMEMORY;
 
-		OCContextMenuFactory *pClassFactory = new OCContextMenuFactory();
+		FMContextMenuFactory *pClassFactory = new FMContextMenuFactory();
 		if (pClassFactory) {
 			hr = pClassFactory->QueryInterface(riid, ppv);
 			pClassFactory->Release();
@@ -78,12 +78,12 @@ STDAPI DllRegisterServer(void)
 	}
 
 	// Register the component.
-	hr = OCContextMenuRegHandler::RegisterInprocServer(szModule, CLSID_FileContextMenuExt,
-		L"OCContextMenuHandler Class",	L"Apartment");
+	hr = FMContextMenuRegHandler::RegisterInprocServer(szModule, CLSID_FileContextMenuExt,
+		L"FMContextMenuHandler Class",	L"Apartment");
 	if (SUCCEEDED(hr))	{
 		// Register the context menu handler. The context menu handler is 
 		// associated with the .cpp file class.
-		hr = OCContextMenuRegHandler::RegisterShellExtContextMenuHandler(L"AllFileSystemObjects", CLSID_FileContextMenuExt, L"OCContextMenuHandler");
+		hr = FMContextMenuRegHandler::RegisterShellExtContextMenuHandler(L"AllFileSystemObjects", CLSID_FileContextMenuExt, L"FMContextMenuHandler");
 	}
 
 	return hr;
@@ -100,10 +100,10 @@ STDAPI DllUnregisterServer(void)
 	}
 
 	// Unregister the component.
-	hr = OCContextMenuRegHandler::UnregisterInprocServer(CLSID_FileContextMenuExt);
+	hr = FMContextMenuRegHandler::UnregisterInprocServer(CLSID_FileContextMenuExt);
 	if (SUCCEEDED(hr))	{
 		// Unregister the context menu handler.
-		hr = OCContextMenuRegHandler::UnregisterShellExtContextMenuHandler(L"AllFileSystemObjects", L"OCContextMenuHandler");
+		hr = FMContextMenuRegHandler::UnregisterShellExtContextMenuHandler(L"AllFileSystemObjects", L"FMContextMenuHandler");
 	}
 
 	return hr;
