@@ -16,11 +16,11 @@
 
 #include <shlobj.h>
 
-class OCOverlay : public IShellIconOverlayIdentifier
+class FMOverlay : public IShellIconOverlayIdentifier
 
 {
 public:
-    OCOverlay(int state);
+    FMOverlay(int state);
 
     IFACEMETHODIMP_(ULONG) AddRef();
     IFACEMETHODIMP GetOverlayInfo(PWSTR pwszIconFile, int cchMax, int *pIndex, DWORD *pdwFlags);
@@ -30,7 +30,7 @@ public:
     IFACEMETHODIMP_(ULONG) Release();
 
 protected:
-    ~OCOverlay();
+    ~FMOverlay();
 
 private:
     long _referenceCount;

@@ -12,8 +12,8 @@
  * details.
  */
 
-#include "OCOverlayRegistrationHandler.h"
-#include "OCOverlayFactory.h"
+#include "FMOverlayRegistrationHandler.h"
+#include "FMOverlayFactory.h"
 #include "OverlayConstants.h"
 
 HINSTANCE instanceHandle = NULL;
@@ -41,11 +41,11 @@ HRESULT CreateFactory(REFIID riid, void **ppv, int state)
 {
     HRESULT hResult = E_OUTOFMEMORY;
 
-    OCOverlayFactory* ocOverlayFactory = new OCOverlayFactory(state);
+    FMOverlayFactory* fmOverlayFactory = new FMOverlayFactory(state);
 
-    if (ocOverlayFactory) {
-        hResult = ocOverlayFactory->QueryInterface(riid, ppv);
-        ocOverlayFactory->Release();
+    if (fmOverlayFactory) {
+        hResult = fmOverlayFactory->QueryInterface(riid, ppv);
+        fmOverlayFactory->Release();
     }
     return hResult;
 }

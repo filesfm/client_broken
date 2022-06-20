@@ -1,11 +1,11 @@
-add_library(OCUtil STATIC
+add_library(FMUtil STATIC
     CommunicationSocket.cpp
     RemotePathChecker.cpp
     StringUtil.cpp
-    OCUtil.rc
+    FMUtil.rc
 )
 
-target_include_directories(OCUtil
+target_include_directories(FMUtil
     PUBLIC
         "${CMAKE_CURRENT_SOURCE_DIR}"
 )
