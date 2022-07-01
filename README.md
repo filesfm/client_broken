@@ -345,6 +345,8 @@ Var StartMenuFolder
 !include "x64.nsh"
 !include "process.nsh"
 !include "fileassoc.nsh"
+!include Library.nsh
+!include LogicLib.nsh 
 
 ;!define MUI_ICON
 @{installerIcon}
@@ -377,6 +379,7 @@ Var StartMenuFolder
 !define MUI_FINISHPAGE_RUN
 !define MUI_FINISHPAGE_RUN_FUNCTION myrun
 !insertmacro MUI_PAGE_FINISH
+!insertmacro MUI_UNPAGE_FINISH
 
 !insertmacro MUI_LANGUAGE "English"
 
@@ -386,6 +389,8 @@ CRCCheck on
 SilentInstall normal
 
 Function myrun
+    Exec '"$WINDIR\System32\regsvr32.exe" /s "$INSTDIR\FMOverlays.dll"'
+    Exec '"$WINDIR\System32\regsvr32.exe" /s "$INSTDIR\FMContextMenu.dll"'
     MessageBox MB_YESNO "To make sure the Explorer integration is working you$\nneed to restart your system. To restart now click Yes, or$\nclick No if you plan to manually restart at a later time." IDYES true IDNO false
     true:
         Reboot   
@@ -405,6 +410,12 @@ Function .onInit
     !insertmacro MULTIUSER_INIT
     !insertmacro APP_ASSOCIATE "filesfm" "files.fm-sync.filesfmfile" "FILESFM Files" \
     "$INSTDIR\files.fm-sync.exe,0" "Open with files.fm-sync" "$INSTDIR\files.fm-sync.exe $\"%1$\""
+    !define LIBRARY_COM
+    !define LIBRARY_SHELL_EXTENSION
+    !define LIBRARY_IGNORE_VERSION
+    !undef LIBRARY_COM
+    !undef LIBRARY_SHELL_EXTENSION
+    !undef LIBRARY_IGNORE_VERSION
     !if "@{architecture}" == "x64"
         ${IfNot} ${RunningX64}
             MessageBox MB_OK|MB_ICONEXCLAMATION "This installer can only be run on 64-bit Windows."
@@ -417,6 +428,19 @@ Function un.onInit
     !insertmacro MULTIUSER_UNINIT
 FunctionEnd
 
+Function un.RebootWindowsExplorer
+  MessageBox MB_YESNO "To make sure that all Files.fm Sync files are deleted$\nWindows Explorer must be restarted. To continue click Yes, or$\nclick No to quit." IDYES true IDNO false
+    true:
+        !insertmacro APP_UNASSOCIATE "FILESFM" "files.fm-sync.filesfmfile"
+        Exec '"$WINDIR\System32\regsvr32.exe" /s /u "$INSTDIR\FMOverlays.dll"'
+        Exec '"$WINDIR\System32\regsvr32.exe" /s /u "$INSTDIR\FMContextMenu.dll"'
+        nsExec::Exec 'cmd /c "taskkill /F /IM explorer.exe"'
+        RMDir /r "$SMPROGRAMS\$StartMenuFolder"
+        Sleep 2000
+        nsExec::Exec 'cmd /c "$WINDIR\explorer.exe"'
+    false:
+        Quit 
+FunctionEnd
 ;--------------------------------
 
 AutoCloseWindow false
@@ -464,7 +488,6 @@ SectionEnd
 ;  allow to define additional sections
 @{sections}
 
-
 ; Uninstaller
 ; All section names prefixed by "Un" will be in the uninstaller
 
@@ -472,17 +495,17 @@ UninstallText "This will uninstall @{productname}."
 
 Section "Uninstall"
 !insertmacro EndProcessWithDialog
-!insertmacro APP_UNASSOCIATE "FILESFM" "files.fm-sync.filesfmfile"
+
 
 DeleteRegKey SHCTX "${uninstkey}"
 DeleteRegKey SHCTX "${regkey}"
 
 !insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenuFolder
-RMDir /r "$SMPROGRAMS\$StartMenuFolder"
+call un.RebootWindowsExplorer
+
 
 @{uninstallFiles}
 @{uninstallDirs}
-
 SectionEnd
 
 ;  allow to define additional Un.sections
