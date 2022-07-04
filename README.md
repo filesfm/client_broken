@@ -430,16 +430,14 @@ FunctionEnd
 
 Function un.RebootWindowsExplorer
   MessageBox MB_YESNO "To make sure that all Files.fm Sync files are deleted$\nWindows Explorer must be restarted. To continue click Yes, or$\nclick No to quit." IDYES true IDNO false
+    false:
+        Quit
     true:
         !insertmacro APP_UNASSOCIATE "FILESFM" "files.fm-sync.filesfmfile"
         Exec '"$WINDIR\System32\regsvr32.exe" /s /u "$INSTDIR\FMOverlays.dll"'
         Exec '"$WINDIR\System32\regsvr32.exe" /s /u "$INSTDIR\FMContextMenu.dll"'
         nsExec::Exec 'cmd /c "taskkill /F /IM explorer.exe"'
-        RMDir /r "$SMPROGRAMS\$StartMenuFolder"
-        Sleep 2000
         nsExec::Exec 'cmd /c "$WINDIR\explorer.exe"'
-    false:
-        Quit 
 FunctionEnd
 ;--------------------------------
 
@@ -502,6 +500,7 @@ DeleteRegKey SHCTX "${regkey}"
 
 !insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenuFolder
 call un.RebootWindowsExplorer
+RMDir /r "$SMPROGRAMS\$StartMenuFolder"
 
 
 @{uninstallFiles}
