@@ -48,10 +48,7 @@ public:
     {
         return _clientIcon;
     }
-    QString contextMenuIconName() const
-    {
-        return _strings.value("CONTEXT_MENU_ICON", "Files.fm Sync");
-    }
+
     QString copyPrivateLinkTitle() const { return _strings["COPY_PRIVATE_LINK_MENU_TITLE"]; }
     QString emailPrivateLinkTitle() const { return _strings["EMAIL_PRIVATE_LINK_MENU_TITLE"]; }
 
