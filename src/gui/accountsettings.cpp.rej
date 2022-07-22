@@ -1,0 +1,10 @@
+diff a/src/gui/accountsettings.cpp b/src/gui/accountsettings.cpp	(rejected hunks)
+@@ -826,7 +826,7 @@
+             _model->slotUpdateFolderState(folder);
+         }
+ 
+-        const QString server = QString::fromLatin1("<a href=\"%1\">%2</a>")
++        const QString server = QString::fromLatin1("<a href=\"https://files.fm/filebrowser#/\">%2</a>")
+                                    .arg(Utility::escape(account->url().toString()),
+                                        Utility::escape(safeUrl.toString()));
+         QString serverWithUser = server;
