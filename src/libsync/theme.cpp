@@ -460,16 +460,13 @@ QString Theme::about() const
     return tr("<p>Version %1. For more information visit <a href=\"%2\">https://%3</a></p>"
               "<p>This is a modified ownCloud client, open source code available here: <a href=\"https://github.com/filesfm/client/tree/2.10\">https://github.com/filesfm</a></p>"
               "<p>Pull requests are welcome.</p>"
-              "<p>Copyright SIA Files.fm</p>"
               "<p>Distributed by %4 and licensed under the GNU General Public License (GPL) Version 2.0.<br/>"
-              "%5 and the %5 logo are registered trademarks of %4 in the "
-              "United States, other countries, or both.</p>"
-              "<p><small>%6</small></p>")
+              "%4 and the %4 logo are registered trademarks of %4</p>"
+              "<p><small>%5</small></p>")
         .arg(Utility::escape(version()),
             Utility::escape(QStringLiteral("https://" APPLICATION_DOMAIN)),
             Utility::escape(QStringLiteral(APPLICATION_DOMAIN)),
             Utility::escape(vendor),
-            Utility::escape(appNameGUI()),
             aboutVersions(Theme::VersionFormat::RichText));
 }
 
