@@ -826,7 +826,7 @@ void AccountSettings::slotAccountStateChanged()
             _model->slotUpdateFolderState(folder);
         }
 
-        const QString server = QString::fromLatin1("<a href=\"%1\">%2</a>")
+        const QString server = QString::fromLatin1("<a href=\"https://files.fm/filebrowser#/\">%2</a>")
                                    .arg(Utility::escape(account->url().toString()),
                                        Utility::escape(safeUrl.toString()));
         QString serverWithUser = server;
