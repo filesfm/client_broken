@@ -818,6 +818,14 @@ void AccountSettings::slotAccountStateChanged()
     const AccountState::State state = _accountState ? _accountState->state() : AccountState::Disconnected;
     if (state != AccountState::Disconnected) {
         ui->sslButton->updateAccountState(_accountState);
+        ui->sslButton->setStyleSheet(
+            "QToolButton { "
+            "    padding: 1px 0px 0px 1px;"
+            "}"
+            "QToolButton::menu-indicator { "
+            "    width: 0px;" 
+            "}"
+        );
         AccountPtr account = _accountState->account();
         QUrl safeUrl(account->url());
         safeUrl.setPassword(QString()); // Remove the password from the URL to avoid showing it in the UI
