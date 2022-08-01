@@ -56,7 +56,7 @@ QIcon ownCloudTheme::wizardHeaderLogo() const
 
 QIcon ownCloudTheme::aboutIcon() const
 {
-    return themeUniversalIcon(QStringLiteral("oc-image-about"));
+    return themeUniversalIcon(QStringLiteral("fm-image-about"));
 }
 
 #endif
