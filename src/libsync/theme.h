@@ -103,6 +103,7 @@ public:
       */
     QIcon syncStateIcon(const SyncResult &status, bool sysTray = false, bool sysTrayMenuVisible = false) const;
     QIcon syncStateIcon(SyncResult::Status result, bool sysTray = false, bool sysTrayMenuVisible = false) const;
+    QIcon themeActionIcon(const QString &name) const;
 
 
     virtual QIcon folderDisabledIcon() const;

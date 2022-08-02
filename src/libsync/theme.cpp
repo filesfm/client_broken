@@ -192,6 +192,13 @@ QIcon Theme::themeTrayIcon(const QString &name, bool sysTrayMenuVisible, IconTyp
     return icon;
 }
 
+QIcon Theme::themeActionIcon(const QString &name) const
+{
+    IconType iconType = IconType::BrandedIconWithFallbackToVanillaIcon;
+    auto icon = loadIcon(QStringLiteral("dark"), name, iconType);
+    return icon;
+}
+
 QIcon Theme::themeIcon(const QString &name, Theme::IconType iconType) const
 {
     return loadIcon((isUsingDarkTheme() && allowDarkTheme()) ? darkTheme() : coloredTheme(), name, iconType);

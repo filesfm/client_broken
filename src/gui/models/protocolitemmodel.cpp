@@ -84,11 +84,11 @@ QVariant ProtocolItemModel::data(const QModelIndex &index, int role) const
                 || status == SyncFileItem::FatalError
                 || status == SyncFileItem::DetailError
                 || status == SyncFileItem::BlacklistedError) {
-                return Theme::instance()->syncStateIcon(SyncResult::Error, true, true);
+                return Theme::instance()->themeActionIcon(QStringLiteral("state-error"));
             } else if (Progress::isWarningKind(status) || status == SyncFileItem::Excluded) {
-                return Theme::instance()->syncStateIcon(SyncResult::Problem, true, true);
+                return Theme::instance()->themeActionIcon(QStringLiteral("state-information"));
             } else {
-                return Theme::instance()->syncStateIcon(SyncResult::Success, true, true);
+                return Theme::instance()->themeActionIcon(QStringLiteral("state-ok"));
             }
         }
         break;
