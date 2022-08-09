@@ -2,6 +2,7 @@
 
 #### Official setup document: https://doc.owncloud.com/desktop/next/appendices/building.html.
 #### Official github repository: https://github.com/owncloud/client.
+#### Newest installer: https://files.fm/u/eyuvsdcs4
 
 ## Setting up KDE Craft
 
