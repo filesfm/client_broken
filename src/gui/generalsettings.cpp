@@ -100,7 +100,7 @@ GeneralSettings::GeneralSettings(QWidget *parent)
 
     // OEM themes are not obliged to ship mono icons, so there
     // is no point in offering an option
-    _ui->monoIconsCheckBox->setVisible(Theme::instance()->monoIconsAvailable());
+    _ui->monoIconsCheckBox->hide();
 
     connect(_ui->ignoredFilesButton, &QAbstractButton::clicked, this, &GeneralSettings::slotIgnoreFilesEditor);
     connect(_ui->logSettingsButton, &QPushButton::clicked, this, [] {
@@ -151,7 +151,6 @@ void GeneralSettings::loadMiscSettings()
     _ui->newFolderLimitCheckBox->setChecked(newFolderLimit.first);
     _ui->newFolderLimitSpinBox->setValue(newFolderLimit.second);
     _ui->newExternalStorage->setChecked(cfgFile.confirmExternalStorage());
-    _ui->monoIconsCheckBox->setChecked(cfgFile.monoIcons());
 
     // the dropdown has to be populated before we can can pick an entry below based on the stored setting
     loadLanguageNamesIntoDropdown();
