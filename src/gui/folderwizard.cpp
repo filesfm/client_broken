@@ -487,7 +487,7 @@ FolderWizardSelectiveSync::FolderWizardSelectiveSync(const AccountPtr &account)
         connect(_virtualFilesCheckBox, &QCheckBox::stateChanged, this, [this](int state) {
             _selectiveSync->setEnabled(state == Qt::Unchecked);
         });
-        _virtualFilesCheckBox->setChecked(vfsMode == Vfs::WindowsCfApi);
+        _virtualFilesCheckBox->setChecked(true);
         layout->addWidget(_virtualFilesCheckBox);
     }
 }
