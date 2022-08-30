@@ -728,6 +728,8 @@ void SocketApi::command_EMAIL_PRIVATE_LINK(const QString &localFile, SocketListe
 
 void SocketApi::command_OPEN_PRIVATE_LINK(const QString &localFile, SocketListener *)
 {
+    const QString link = QStringLiteral("https://files.fm/filebrowser#/");
+    Utility::openBrowser(link, nullptr);
     fetchPrivateLinkUrlHelper(localFile, &SocketApi::openPrivateLink);
 }
 
