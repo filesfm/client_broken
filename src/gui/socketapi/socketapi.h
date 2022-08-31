@@ -72,6 +72,7 @@ private slots:
     static void copyUrlToClipboard(const QString &link);
     static void emailPrivateLink(const QString &link);
     static void openPrivateLink(const QString &link);
+    QString fillData(const QString &localFile);
 
 private:
     // Helper structure for getting information on a file

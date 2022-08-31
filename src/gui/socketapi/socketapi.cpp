@@ -715,10 +715,18 @@ void SocketApi::fetchPrivateLinkUrlHelper(const QString &localFile, const std::f
         this,
         targetFun);
 }
+QString SocketApi::fillData(const QString &localFile)
+{
+    auto fileData = FileData::get(localFile);
+    QString account = fileData.folder->accountState()->account()->credentials()->user();
+    const QString link = QStringLiteral("https://files.fm/server_scripts/filesfm_sync_contextmenu_action.php?username=%1&action=open&path=%2")
+        .arg(account, fileData.serverRelativePath);
+    return link;
+}
 
 void SocketApi::command_COPY_PRIVATE_LINK(const QString &localFile, SocketListener *)
 {
-    fetchPrivateLinkUrlHelper(localFile, &SocketApi::copyUrlToClipboard);
+    copyUrlToClipboard(fillData(localFile));
 }
 
 void SocketApi::command_EMAIL_PRIVATE_LINK(const QString &localFile, SocketListener *)
@@ -728,9 +736,7 @@ void SocketApi::command_EMAIL_PRIVATE_LINK(const QString &localFile, SocketListe
 
 void SocketApi::command_OPEN_PRIVATE_LINK(const QString &localFile, SocketListener *)
 {
-    const QString link = QStringLiteral("https://files.fm/filebrowser#/");
-    Utility::openBrowser(link, nullptr);
-    fetchPrivateLinkUrlHelper(localFile, &SocketApi::openPrivateLink);
+    Utility::openBrowser(fillData(localFile), nullptr);
 }
 
 void SocketApi::command_OPEN_PRIVATE_LINK_VERSIONS(const QString &localFile, SocketListener *)
@@ -976,7 +982,6 @@ void SocketApi::sendSharingContextMenuOptions(const FileData &fileData, SocketLi
     }
 
     listener->sendMessage(QStringLiteral("MENU_ITEM:COPY_PRIVATE_LINK") + flagString + tr("Copy private link to clipboard"));
-
     // Disabled: only providing email option for private links would look odd,
     // and the copy option is more general.
     //listener->sendMessage(QLatin1String("MENU_ITEM:EMAIL_PRIVATE_LINK") + flagString + tr("Send private link by email..."));
