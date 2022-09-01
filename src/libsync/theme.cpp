@@ -587,7 +587,7 @@ bool Theme::linkSharing() const
 
 bool Theme::userGroupSharing() const
 {
-    return false;
+    return true;
 }
 
 bool Theme::forceSystemNetworkProxy() const
