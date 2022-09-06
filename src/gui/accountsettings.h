@@ -76,6 +76,7 @@ protected slots:
     void slotRemoveCurrentFolder();
     void slotEnableVfsCurrentFolder();
     void slotDisableVfsCurrentFolder();
+    void slotSetCurrentFolderAvailability(PinState state);
     void slotFolderWizardAccepted();
     void slotFolderWizardRejected();
     void slotDeleteAccount();
