@@ -983,7 +983,7 @@ void SocketApi::sendSharingContextMenuOptions(const FileData &fileData, SocketLi
     bool canCreateDefaultPublicLink = publicLinksEnabled
         && !capabilities.sharePublicLinkEnforcePasswordForReadOnly();
     
-    listener->sendMessage(QStringLiteral("MENU_ITEM:COPY_PRIVATE_LINK") + flagString + tr("Copy public link to clipboard"));
+    //listener->sendMessage(QStringLiteral("MENU_ITEM:COPY_PRIVATE_LINK") + flagString + tr("Copy public link to clipboard"));
     listener->sendMessage(QStringLiteral("MENU_ITEM:SHARE") + flagString + tr("Share"));
     listener->sendMessage(QLatin1String("MENU_ITEM:OPEN_BROWSER_SEND_MESSAGE") + flagString + tr("Send message"));
     listener->sendMessage(QLatin1String("MENU_ITEM:OPEN_BROWSER_FILE_VERSIONS") + flagString + tr("View old versions"));
