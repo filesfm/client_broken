@@ -47,7 +47,7 @@ public:
      */
     enum Status {
         /// Emitted once at start
-        Starting,
+         None,
 
         /**
          * Emitted once without _currentDiscoveredFolder when it starts,
