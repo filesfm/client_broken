@@ -110,7 +110,7 @@ public:
     bool isDeployed() const;
 
 private:
-    bool _deployed;
+    bool _deployed = false;
 };
 
 /**
@@ -311,8 +311,6 @@ public:
      */
     bool virtualFilesEnabled() const;
     void setVirtualFilesEnabled(bool enabled);
-
-    void setRootPinState(PinState state);
 
     /** Whether user desires a switch that couldn't be executed yet, see member */
     bool isVfsOnOffSwitchPending() const { return _vfsOnOffPending; }
