@@ -144,7 +144,7 @@ void GeneralSettings::loadMiscSettings()
 {
     QScopedValueRollback<bool> scope(_currentlyLoading, true);
     ConfigFile cfgFile;
-    _ui->monoIconsCheckBox->setChecked(cfgFile.monoIcons());
+    _ui->monoIconsCheckBox->setChecked(true);
     _ui->desktopNotificationsCheckBox->setChecked(cfgFile.optionalDesktopNotifications());
     _ui->showInExplorerNavigationPaneCheckBox->setChecked(cfgFile.showInExplorerNavigationPane());
     _ui->crashreporterCheckBox->setChecked(cfgFile.crashReporter());
