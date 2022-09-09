@@ -48,7 +48,8 @@ GeneralSettings::GeneralSettings(QWidget *parent)
     , _currentlyLoading(false)
 {
     _ui->setupUi(this);
-
+    _ui->crashreporterCheckBox->setVisible(false);
+    _ui->autostartCheckBox->setChecked(true);
     connect(_ui->desktopNotificationsCheckBox, &QAbstractButton::toggled,
         this, &GeneralSettings::slotToggleOptionalDesktopNotifications);
 #ifdef Q_OS_WIN
@@ -84,7 +85,7 @@ GeneralSettings::GeneralSettings(QWidget *parent)
     });
 
 #ifndef WITH_CRASHREPORTER
-    _ui->crashreporterCheckBox->setVisible(false);
+    
 #endif
 
     // Hide on non-Windows, or WindowsVersion < 10.
