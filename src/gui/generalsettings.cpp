@@ -85,7 +85,7 @@ GeneralSettings::GeneralSettings(QWidget *parent)
 
 #ifndef WITH_CRASHREPORTER
     _ui->crashreporterCheckBox->setVisible(false);
-    _ui->autostartCheckBox->setChecked(true);
+    
 #endif
 
     // Hide on non-Windows, or WindowsVersion < 10.
@@ -102,7 +102,7 @@ GeneralSettings::GeneralSettings(QWidget *parent)
     // OEM themes are not obliged to ship mono icons, so there
     // is no point in offering an option
     _ui->monoIconsCheckBox->hide();
-
+    _ui->autostartCheckBox->setChecked(true);
     connect(_ui->ignoredFilesButton, &QAbstractButton::clicked, this, &GeneralSettings::slotIgnoreFilesEditor);
     connect(_ui->logSettingsButton, &QPushButton::clicked, this, [] {
         // only access occApp after things are set up
