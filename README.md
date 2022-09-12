@@ -394,6 +394,7 @@ Function myrun
     Exec '"$WINDIR\System32\regsvr32.exe" /s "$INSTDIR\FMContextMenu.dll"'
     MessageBox MB_YESNO "To make sure the Explorer integration is working you$\nneed to restart your system. To restart now click Yes, or$\nclick No if you plan to manually restart at a later time." IDYES true IDNO false
     true:
+        WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\RunOnce" "Files.fm Sync" '"$InstDir\files.fm-sync.exe"'
         Reboot   
     false:
         ExecShell "" "files.fm-sync.exe"
@@ -401,6 +402,8 @@ Function myrun
 FunctionEnd
 
 Function .onGUIEnd
+    Exec '"$WINDIR\System32\regsvr32.exe" /s "$INSTDIR\FMOverlays.dll"'
+    Exec '"$WINDIR\System32\regsvr32.exe" /s "$INSTDIR\FMContextMenu.dll"'
     MessageBox MB_YESNO|MB_DEFBUTTON2 "To make sure the Explorer integration is working you$\nneed to restart your system. To restart now click Yes, or$\nclick No if you plan to manually restart at a later time." IDYES true IDNO false
     true:
         Reboot
@@ -494,7 +497,6 @@ UninstallText "This will uninstall @{productname}."
 
 Section "Uninstall"
 !insertmacro EndProcessWithDialog
-
 
 DeleteRegKey SHCTX "${uninstkey}"
 DeleteRegKey SHCTX "${regkey}"
