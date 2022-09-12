@@ -85,7 +85,6 @@ GeneralSettings::GeneralSettings(QWidget *parent)
 
 #ifndef WITH_CRASHREPORTER
     _ui->crashreporterCheckBox->setVisible(false);
-    
 #endif
 
     // Hide on non-Windows, or WindowsVersion < 10.
@@ -101,8 +100,9 @@ GeneralSettings::GeneralSettings(QWidget *parent)
 
     // OEM themes are not obliged to ship mono icons, so there
     // is no point in offering an option
-    _ui->monoIconsCheckBox->hide();
     _ui->autostartCheckBox->setChecked(true);
+    _ui->monoIconsCheckBox->setChecked(true);
+    _ui->monoIconsCheckBox->hide();
     connect(_ui->ignoredFilesButton, &QAbstractButton::clicked, this, &GeneralSettings::slotIgnoreFilesEditor);
     connect(_ui->logSettingsButton, &QPushButton::clicked, this, [] {
         // only access occApp after things are set up
@@ -144,7 +144,7 @@ void GeneralSettings::loadMiscSettings()
 {
     QScopedValueRollback<bool> scope(_currentlyLoading, true);
     ConfigFile cfgFile;
-    _ui->monoIconsCheckBox->setChecked(true);
+    _ui->monoIconsCheckBox->setChecked(cfgFile.monoIcons());
     _ui->desktopNotificationsCheckBox->setChecked(cfgFile.optionalDesktopNotifications());
     _ui->showInExplorerNavigationPaneCheckBox->setChecked(cfgFile.showInExplorerNavigationPane());
     _ui->crashreporterCheckBox->setChecked(cfgFile.crashReporter());
@@ -152,6 +152,7 @@ void GeneralSettings::loadMiscSettings()
     _ui->newFolderLimitCheckBox->setChecked(newFolderLimit.first);
     _ui->newFolderLimitSpinBox->setValue(newFolderLimit.second);
     _ui->newExternalStorage->setChecked(cfgFile.confirmExternalStorage());
+    _ui->monoIconsCheckBox->setChecked(cfgFile.monoIcons());
 
     // the dropdown has to be populated before we can can pick an entry below based on the stored setting
     loadLanguageNamesIntoDropdown();
@@ -250,7 +251,7 @@ void GeneralSettings::saveMiscSettings()
     ConfigFile cfgFile;
     bool isChecked = _ui->monoIconsCheckBox->isChecked();
     cfgFile.setMonoIcons(isChecked);
-    Theme::instance()->setSystrayUseMonoIcons(isChecked);
+    Theme::instance()->setSystrayUseMonoIcons(true);
     cfgFile.setCrashReporter(_ui->crashreporterCheckBox->isChecked());
 
     cfgFile.setNewBigFolderSizeLimit(_ui->newFolderLimitCheckBox->isChecked(),
