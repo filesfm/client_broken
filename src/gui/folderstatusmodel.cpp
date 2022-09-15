@@ -185,10 +185,6 @@ QVariant FolderStatusModel::data(const QModelIndex &index, int role) const
                 return QVariant();
             return QVariant(f->path() + x._path);
         }
-        case FolderStatusDelegate::IsReady: {
-            auto f = x._folder;
-            return f->isReady();
-        }
         }
     }
         return QVariant();
@@ -574,16 +570,9 @@ bool FolderStatusModel::canFetchMore(const QModelIndex &parent) const
 
 void FolderStatusModel::fetchMore(const QModelIndex &parent)
 {
-    {
-        const auto isReady = data(parent, FolderStatusDelegate::IsReady);
-
-        Q_ASSERT(isReady.isValid());
-
-        if (!isReady.toBool()) {
-            return;
-        }
+    if (!data(parent, FolderStatusDelegate::IsReady).toBool()) {
+        return;
     }
-
     auto info = infoForIndex(parent);
 
     if (!info || info->_fetched || info->_fetchingJob)

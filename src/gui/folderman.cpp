@@ -160,7 +160,7 @@ FolderMan::FolderMan(QObject *parent)
     connect(&_startScheduledSyncTimer, &QTimer::timeout,
         this, &FolderMan::slotStartScheduledFolderSync);
 
-    _timeScheduler.setInterval(5s);
+    _timeScheduler.setInterval(5000);
     _timeScheduler.setSingleShot(false);
     connect(&_timeScheduler, &QTimer::timeout,
         this, &FolderMan::slotScheduleFolderByTime);
@@ -364,6 +364,13 @@ void FolderMan::setupFoldersHelper(QSettings &settings, AccountStatePtr account,
 
             Folder *f = addFolderInternal(std::move(folderDefinition), account.data(), std::move(vfs));
             if (f) {
+                // Migrate the old "usePlaceholders" setting to the root folder pin state
+                if (settings.value(versionC(), 1).toInt() == 1
+                    && settings.value(QLatin1String("usePlaceholders"), false).toBool()) {
+                    qCInfo(lcFolderMan) << "Migrate: From usePlaceholders to PinState::OnlineOnly";
+                    f->setRootPinState(PinState::OnlineOnly);
+                }
+
                 // Migration: Mark folders that shall be saved in a backwards-compatible way
                 if (backwardsCompatible)
                     f->setSaveBackwardsCompatible(true);
@@ -1206,14 +1213,21 @@ void FolderMan::removeFolder(Folder *f)
     f->removeFromSettings();
 
     unloadFolder(f);
-    f->deleteLater();
+    if (currentlyRunning) {
+        // We want to schedule the next folder once this is done
+        connect(f, &Folder::syncFinished,
+            this, &FolderMan::slotFolderSyncFinished);
+        // Let the folder delete itself when done.
+        connect(f, &Folder::syncFinished, f, &QObject::deleteLater);
+    } else {
+        f->deleteLater();
+    }
 
 #ifdef Q_OS_WIN
     _navigationPaneHelper.scheduleUpdateCloudStorageRegistry();
 #endif
     Q_EMIT folderRemoved(f);
     emit folderListChanged(_folderMap);
-    QTimer::singleShot(0, this, &FolderMan::startScheduledSyncSoon);
 }
 
 QString FolderMan::getBackupName(QString fullPathName) const
