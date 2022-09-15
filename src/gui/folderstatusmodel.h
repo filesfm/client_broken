@@ -15,8 +15,7 @@
 #ifndef FOLDERSTATUSMODEL_H
 #define FOLDERSTATUSMODEL_H
 
-#include "accountfwd.h"
-
+#include <accountfwd.h>
 #include <QAbstractItemModel>
 #include <QLoggingCategory>
 #include <QVector>
@@ -46,7 +45,6 @@ public:
 
     Qt::ItemFlags flags(const QModelIndex &) const override;
     QVariant data(const QModelIndex &index, int role) const override;
-    Folder *folder(const QModelIndex &index) const;
     bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole) override;
     int columnCount(const QModelIndex &parent = QModelIndex()) const override;
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
@@ -112,10 +110,9 @@ public:
             int _overallPercent;
         };
         Progress _progress;
-
-        std::chrono::steady_clock::time_point _lastProgressUpdated = std::chrono::steady_clock::now();
     };
 
+    QVector<SubFolderInfo> _folders;
 
     enum ItemType { RootFolder,
         SubFolder,
@@ -160,11 +157,10 @@ private:
         const QStringList &oldBlackList) const;
 
     void computeProgress(const ProgressInfo &progress, SubFolderInfo::Progress *pi);
-    int indexOf(Folder *f) const;
 
     const AccountState *_accountState;
     bool _dirty; // If the selective sync checkboxes were changed
-    QVector<SubFolderInfo> _folders;
+    std::chrono::steady_clock::time_point _lastProgressUpdated = std::chrono::steady_clock::now();
 
     /**
      * Keeps track of items that are fetching data from the server.

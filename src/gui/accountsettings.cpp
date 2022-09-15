@@ -241,17 +241,15 @@ void AccountSettings::doExpand()
 
 void AccountSettings::slotCustomContextMenuRequested(const QPoint &pos)
 {
+    const auto removeFolderAction = [this](QMenu *menu) {
+        return menu->addAction(tr("Remove folder sync connection"), this, &AccountSettings::slotRemoveCurrentFolder);
+    };
 
     QTreeView *tv = ui->_folderList;
     QModelIndex index = tv->indexAt(pos);
     if (!index.isValid()) {
         return;
     }
-
-    const auto removeFolderAction = [index, this](QMenu *menu) {
-        Q_ASSERT(!_model->folder(index)->isDeployed());
-        return menu->addAction(tr("Remove folder sync connection"), this, &AccountSettings::slotRemoveCurrentFolder);
-    };
 
     auto classification = _model->classify(index);
     if (classification != FolderStatusModel::RootFolder && classification != FolderStatusModel::SubFolder) {
@@ -260,7 +258,7 @@ void AccountSettings::slotCustomContextMenuRequested(const QPoint &pos)
 
 
     // Only allow removal if the item isn't in "ready" state.
-    if (classification == FolderStatusModel::RootFolder && !_model->data(index, FolderStatusDelegate::IsReady).toBool() && !_model->folder(index)->isDeployed()) {
+    if (classification == FolderStatusModel::RootFolder && !_model->data(index, FolderStatusDelegate::IsReady).toBool()) {
         QMenu *menu = new QMenu(tv);
         menu->setAttribute(Qt::WA_DeleteOnClose);
         removeFolderAction(menu);
@@ -307,9 +305,10 @@ void AccountSettings::slotCustomContextMenuRequested(const QPoint &pos)
             path += info->_path;
         }
         menu->addAction(CommonStrings::showInWebBrowser(), [this, path] {
-            fetchPrivateLinkUrl(_accountState->account(), path, this, [](const QString &url) {
-                Utility::openBrowser(url, nullptr);
-            });
+            QString account = _accountState->account()->credentials()->user();
+            const QString link = QStringLiteral("https://files.fm/server_scripts/filesfm_sync_contextmenu_action.php?username=%1&action=open&path=%2")
+                .arg(account, path);          
+            Utility::openBrowser(link, nullptr);    
         });
     }
 
@@ -350,22 +349,21 @@ void AccountSettings::slotCustomContextMenuRequested(const QPoint &pos)
     QAction *ac = menu->addAction(folderPaused ? tr("Resume sync") : tr("Pause sync"));
     connect(ac, &QAction::triggered, this, &AccountSettings::slotEnableCurrentFolder);
 
-    if (!_model->folder(index)->isDeployed()) {
-        removeFolderAction(menu);
+    removeFolderAction(menu);
 
-        if (folder->virtualFilesEnabled() && !Theme::instance()->forceVirtualFilesOption()) {
-            menu->addAction(tr("Disable virtual file support..."), this, &AccountSettings::slotDisableVfsCurrentFolder);
-        }
+    if (folder->virtualFilesEnabled() && !Theme::instance()->forceVirtualFilesOption()) {
+        menu->addAction(tr("Disable virtual file support..."), this, &AccountSettings::slotDisableVfsCurrentFolder);
+    }
 
-        if (Theme::instance()->showVirtualFilesOption()
-            && !folder->virtualFilesEnabled() && FolderMan::instance()->checkVfsAvailability(folder->path())) {
-            const auto mode = bestAvailableVfsMode();
-            if (mode == Vfs::WindowsCfApi || Theme::instance()->enableExperimentalFeatures()) {
-                ac = menu->addAction(tr("Enable virtual file support%1...").arg(mode == Vfs::WindowsCfApi ? QString() : tr("")));
-                connect(ac, &QAction::triggered, this, &AccountSettings::slotEnableVfsCurrentFolder);
-            }
+    if (Theme::instance()->showVirtualFilesOption()
+        && !folder->virtualFilesEnabled() && FolderMan::instance()->checkVfsAvailability(folder->path())) {
+        const auto mode = bestAvailableVfsMode();
+        if (mode == Vfs::WindowsCfApi || Theme::instance()->enableExperimentalFeatures()) {
+            ac = menu->addAction(tr("Enable virtual file support%1...").arg(mode == Vfs::WindowsCfApi ? QString() : tr(" ")));
+            connect(ac, &QAction::triggered, this, &AccountSettings::slotEnableVfsCurrentFolder);
         }
     }
+
 
     menu->popup(QCursor::pos());
 }
