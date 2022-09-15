@@ -130,7 +130,7 @@ ProgressInfo::ProgressInfo()
 
 void ProgressInfo::reset()
 {
-    _status = None;
+    _status = Starting;
 
     _currentItems.clear();
     _currentDiscoveredRemoteFolder.clear();
