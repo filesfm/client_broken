@@ -59,6 +59,11 @@ auto versionC()
     return QStringLiteral("version");
 }
 
+auto deployedC()
+{
+    return QStringLiteral("deployed");
+}
+
 constexpr int WinVfsSettingsVersion = 4;
 constexpr int SettingsVersion = 2;
 }
@@ -278,7 +283,7 @@ QString Folder::cleanPath() const
 
 bool Folder::isSyncRunning() const
 {
-    return !hasSetupError() && (_engine->isSyncRunning() || _vfs->isHydrating());
+    return !hasSetupError() && _engine->isSyncRunning();
 }
 
 QString Folder::remotePath() const
@@ -543,9 +548,6 @@ void Folder::startVfs()
     vfsParams.providerVersion = Theme::instance()->version();
     vfsParams.multipleAccountsRegistered = AccountManager::instance()->accounts().size() > 1;
 
-    connect(_vfs.data(), &Vfs::beginHydrating, this, &Folder::slotHydrationStarts);
-    connect(_vfs.data(), &Vfs::doneHydrating, this, &Folder::slotHydrationDone);
-
     connect(&_engine->syncFileStatusTracker(), &SyncFileStatusTracker::fileStatusChanged,
         _vfs.data(), &Vfs::fileStatusChanged);
 
@@ -738,18 +740,14 @@ void Folder::setVirtualFilesEnabled(bool enabled)
     }
 }
 
-void Folder::setRootPinState(PinState state)
-{
-    _vfs->setPinState(QString(), state);
-
-    // We don't actually need discovery, but it's important to recurse
-    // into all folders, so the changes can be applied.
-    slotNextSyncFullLocalDiscovery();
-}
-
 bool Folder::supportsSelectiveSync() const
 {
     return !virtualFilesEnabled() && !isVfsOnOffSwitchPending();
+}
+
+bool Folder::isDeployed() const
+{
+    return _definition.isDeployed();
 }
 
 void Folder::saveToSettings() const
@@ -1238,30 +1236,6 @@ void Folder::slotWatcherUnreliable(const QString &message)
     ocApp()->gui()->slotShowGuiMessage(Theme::instance()->appNameGUI(), fullMessage);
 }
 
-void Folder::slotHydrationStarts()
-{
-    // Abort any running full sync run and reschedule
-    if (_engine->isSyncRunning()) {
-        slotTerminateSync();
-        scheduleThisFolderSoon();
-        // TODO: This sets the sync state to AbortRequested on done, we don't want that
-    }
-
-    // Let everyone know we're syncing
-    _syncResult.reset();
-    _syncResult.setStatus(SyncResult::SyncRunning);
-    emit syncStarted();
-    emit syncStateChange();
-}
-
-void Folder::slotHydrationDone()
-{
-    // emit signal to update ui and reschedule normal syncs if necessary
-    _syncResult.setStatus(SyncResult::Success);
-    emit syncFinished(_syncResult);
-    emit syncStateChange();
-}
-
 void Folder::scheduleThisFolderSoon()
 {
     if (!_scheduleSelfTimer.isActive()) {
@@ -1345,6 +1319,7 @@ void FolderDefinition::save(QSettings &settings, const FolderDefinition &folder)
     settings.setValue(QLatin1String("targetPath"), folder.targetPath);
     settings.setValue(QLatin1String("paused"), folder.paused);
     settings.setValue(QLatin1String("ignoreHiddenFiles"), folder.ignoreHiddenFiles);
+    settings.setValue(deployedC(), folder.isDeployed());
 
     settings.setValue(QStringLiteral("virtualFilesMode"), Vfs::modeToString(folder.virtualFilesMode));
 
@@ -1369,6 +1344,7 @@ bool FolderDefinition::load(QSettings &settings, const QString &alias,
     folder->targetPath = settings.value(QLatin1String("targetPath")).toString();
     folder->paused = settings.value(QLatin1String("paused")).toBool();
     folder->ignoreHiddenFiles = settings.value(QLatin1String("ignoreHiddenFiles"), QVariant(true)).toBool();
+    folder->_deployed = settings.value(deployedC(), false).toBool();
     folder->navigationPaneClsid = settings.value(QLatin1String("navigationPaneClsid")).toUuid();
 
     folder->virtualFilesMode = Vfs::Off;
@@ -1422,6 +1398,11 @@ QString FolderDefinition::prepareTargetPath(const QString &path)
 QString FolderDefinition::absoluteJournalPath() const
 {
     return QDir(localPath).filePath(journalPath);
+}
+
+bool FolderDefinition::isDeployed() const
+{
+    return _deployed;
 }
 
 } // namespace OCC

@@ -20,4 +20,3 @@ set( MAC_INSTALLER_BACKGROUND_FILE "${CMAKE_SOURCE_DIR}/admin/osx/installer-back
 
 option( WITH_CRASHREPORTER "Build crashreporter" OFF )
 set( CRASHREPORTER_SUBMIT_URL "https://crash-reports.owncloud.com/submit" CACHE STRING "URL for crash reporter" )
-

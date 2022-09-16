@@ -102,6 +102,15 @@ public:
 
     /// journalPath relative to localPath.
     QString absoluteJournalPath() const;
+
+    /**
+     * The folder is deployed by an admin
+     * We will hide the remove option and the disable/enable vfs option.
+     */
+    bool isDeployed() const;
+
+private:
+    bool _deployed = false;
 };
 
 /**
@@ -303,14 +312,18 @@ public:
     bool virtualFilesEnabled() const;
     void setVirtualFilesEnabled(bool enabled);
 
-    void setRootPinState(PinState state);
-
     /** Whether user desires a switch that couldn't be executed yet, see member */
     bool isVfsOnOffSwitchPending() const { return _vfsOnOffPending; }
     void setVfsOnOffSwitchPending(bool pending) { _vfsOnOffPending = pending; }
 
     /** Whether this folder should show selective sync ui */
     bool supportsSelectiveSync() const;
+
+    /**
+     * The folder is deployed by an admin
+     * We will hide the remove option and the disable/enable vfs option.
+     */
+    bool isDeployed() const;
 
 signals:
     void syncStateChange();
@@ -426,17 +439,6 @@ private slots:
 
     /** Warn users about an unreliable folder watcher */
     void slotWatcherUnreliable(const QString &message);
-
-    /** Aborts any running sync and blocks it until hydration is finished.
-     *
-     * Hydration circumvents the regular SyncEngine and both mustn't be running
-     * at the same time.
-     */
-    void slotHydrationStarts();
-
-    /** Unblocks normal sync operation */
-    void slotHydrationDone();
-
 private:
     void connectSyncRoot();
 

@@ -105,7 +105,6 @@ public:
     QIcon syncStateIcon(SyncResult::Status result, bool sysTray = false, bool sysTrayMenuVisible = false) const;
     QIcon themeActionIcon(const QString &name) const;
 
-
     virtual QIcon folderDisabledIcon() const;
     virtual QIcon folderOfflineIcon(bool sysTray = false, bool sysTrayMenuVisible = false) const;
     virtual QIcon applicationIcon() const;

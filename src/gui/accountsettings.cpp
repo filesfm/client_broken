@@ -241,9 +241,6 @@ void AccountSettings::doExpand()
 
 void AccountSettings::slotCustomContextMenuRequested(const QPoint &pos)
 {
-    const auto removeFolderAction = [this](QMenu *menu) {
-        return menu->addAction(tr("Remove folder sync connection"), this, &AccountSettings::slotRemoveCurrentFolder);
-    };
 
     QTreeView *tv = ui->_folderList;
     QModelIndex index = tv->indexAt(pos);
@@ -251,14 +248,18 @@ void AccountSettings::slotCustomContextMenuRequested(const QPoint &pos)
         return;
     }
 
+    const auto removeFolderAction = [index, this](QMenu *menu) {
+        Q_ASSERT(!_model->folder(index)->isDeployed());
+        return menu->addAction(tr("Remove folder sync connection"), this, &AccountSettings::slotRemoveCurrentFolder);
+    };
+
     auto classification = _model->classify(index);
     if (classification != FolderStatusModel::RootFolder && classification != FolderStatusModel::SubFolder) {
         return;
     }
 
-
     // Only allow removal if the item isn't in "ready" state.
-    if (classification == FolderStatusModel::RootFolder && !_model->data(index, FolderStatusDelegate::IsReady).toBool()) {
+    if (classification == FolderStatusModel::RootFolder && !_model->data(index, FolderStatusDelegate::IsReady).toBool() && !_model->folder(index)->isDeployed()) {
         QMenu *menu = new QMenu(tv);
         menu->setAttribute(Qt::WA_DeleteOnClose);
         removeFolderAction(menu);
@@ -308,7 +309,7 @@ void AccountSettings::slotCustomContextMenuRequested(const QPoint &pos)
             QString account = _accountState->account()->credentials()->user();
             const QString link = QStringLiteral("https://files.fm/server_scripts/filesfm_sync_contextmenu_action.php?username=%1&action=open&path=%2")
                 .arg(account, path);          
-            Utility::openBrowser(link, nullptr);    
+            Utility::openBrowser(link, nullptr);
         });
     }
 
@@ -349,21 +350,22 @@ void AccountSettings::slotCustomContextMenuRequested(const QPoint &pos)
     QAction *ac = menu->addAction(folderPaused ? tr("Resume sync") : tr("Pause sync"));
     connect(ac, &QAction::triggered, this, &AccountSettings::slotEnableCurrentFolder);
 
-    removeFolderAction(menu);
+    if (!_model->folder(index)->isDeployed()) {
+        removeFolderAction(menu);
 
-    if (folder->virtualFilesEnabled() && !Theme::instance()->forceVirtualFilesOption()) {
-        menu->addAction(tr("Disable virtual file support..."), this, &AccountSettings::slotDisableVfsCurrentFolder);
-    }
+        if (folder->virtualFilesEnabled() && !Theme::instance()->forceVirtualFilesOption()) {
+            menu->addAction(tr("Disable virtual file support..."), this, &AccountSettings::slotDisableVfsCurrentFolder);
+        }
 
-    if (Theme::instance()->showVirtualFilesOption()
-        && !folder->virtualFilesEnabled() && FolderMan::instance()->checkVfsAvailability(folder->path())) {
-        const auto mode = bestAvailableVfsMode();
-        if (mode == Vfs::WindowsCfApi || Theme::instance()->enableExperimentalFeatures()) {
-            ac = menu->addAction(tr("Enable virtual file support%1...").arg(mode == Vfs::WindowsCfApi ? QString() : tr(" ")));
-            connect(ac, &QAction::triggered, this, &AccountSettings::slotEnableVfsCurrentFolder);
+        if (Theme::instance()->showVirtualFilesOption()
+            && !folder->virtualFilesEnabled() && FolderMan::instance()->checkVfsAvailability(folder->path())) {
+            const auto mode = bestAvailableVfsMode();
+            if (mode == Vfs::WindowsCfApi || (Theme::instance()->enableExperimentalFeatures() && mode != Vfs::Off)) {
+                ac = menu->addAction(tr("Enable virtual file support%1...").arg(mode == Vfs::WindowsCfApi ? QString() : tr("")));
+                connect(ac, &QAction::triggered, this, &AccountSettings::slotEnableVfsCurrentFolder);
+            }
         }
     }
-
 
     menu->popup(QCursor::pos());
 }
@@ -476,9 +478,6 @@ void AccountSettings::slotFolderWizardAccepted()
 
     Folder *f = folderMan->addFolder(_accountState, definition);
     if (f) {
-        if (definition.virtualFilesMode != Vfs::Off && folderWizard->property("useVirtualFiles").toBool())
-            f->setRootPinState(PinState::OnlineOnly);
-
         f->journalDb()->setSelectiveSyncList(SyncJournalDb::SelectiveSyncBlackList, selectiveSyncBlackList);
 
         // The user already accepted the selective sync dialog. everything is in the white list
@@ -565,9 +564,6 @@ void AccountSettings::slotEnableVfsCurrentFolder()
             folder->setVirtualFilesEnabled(true);
             folder->setVfsOnOffSwitchPending(false);
 
-            // Setting to Unspecified retains existing data.
-            // Selective sync excluded folders become OnlineOnly.
-            folder->setRootPinState(PinState::Unspecified);
             for (const auto &entry : oldBlacklist) {
                 folder->journalDb()->schedulePathForRemoteDiscovery(entry);
                 folder->vfs().setPinState(entry, PinState::OnlineOnly);
@@ -632,9 +628,6 @@ void AccountSettings::slotDisableVfsCurrentFolder()
             // Also wipes virtual files, schedules remote discovery
             folder->setVirtualFilesEnabled(false);
             folder->setVfsOnOffSwitchPending(false);
-
-            // Wipe pin states and selective sync db
-            folder->setRootPinState(PinState::AlwaysLocal);
             folder->journalDb()->setSelectiveSyncList(SyncJournalDb::SelectiveSyncBlackList, {});
 
             // Prevent issues with missing local files
@@ -655,21 +648,6 @@ void AccountSettings::slotDisableVfsCurrentFolder()
         }
     });
     msgBox->open();
-}
-
-void AccountSettings::slotSetCurrentFolderAvailability(PinState state)
-{
-    OC_ASSERT(state == PinState::OnlineOnly || state == PinState::AlwaysLocal);
-
-    FolderMan *folderMan = FolderMan::instance();
-    QPointer<Folder> folder = folderMan->folder(selectedFolderAlias());
-    QModelIndex selected = ui->_folderList->selectionModel()->currentIndex();
-    if (!selected.isValid() || !folder)
-        return;
-
-    // similar to socket api: sets pin state recursively and sync
-    folder->setRootPinState(state);
-    folder->scheduleThisFolderSoon();
 }
 
 void AccountSettings::showConnectionLabel(const QString &message, QStringList errors)

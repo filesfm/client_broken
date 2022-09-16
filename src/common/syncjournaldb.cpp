@@ -250,6 +250,10 @@ bool SyncJournalDb::sqlFail(const QString &log, const SqlQuery &query)
 
 bool SyncJournalDb::checkConnect()
 {
+    if (_closed) {
+        qCWarning(lcDb) << Q_FUNC_INFO << "after the db was closed";
+        return false;
+    }
     if (autotestFailCounter >= 0) {
         if (!autotestFailCounter--) {
             qCInfo(lcDb) << "Error Simulated";
@@ -625,8 +629,14 @@ void SyncJournalDb::close()
     _db.close();
     clearEtagStorageFilter();
     _metadataTableIsEmpty = false;
+    _closed = true;
 }
 
+void SyncJournalDb::allowReopen()
+{
+    Q_ASSERT(_closed);
+    _closed = false;
+}
 
 bool SyncJournalDb::updateDatabaseStructure()
 {
@@ -2100,9 +2110,10 @@ Optional<PinState> SyncJournalDb::PinStateInterface::effectiveForPath(const QByt
     auto next = query->next();
     if (!next.ok)
         return {};
-    // If the root path has no setting, assume AlwaysLocal
-    if (!next.hasData)
-        return PinState::AlwaysLocal;
+    // If the root path has no setting, assume Unspecified
+    if (!next.hasData) {
+        return PinState::Unspecified;
+    }
 
     return static_cast<PinState>(query->intValue(0));
 }
