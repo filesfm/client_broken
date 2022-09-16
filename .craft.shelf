@@ -1,0 +1,148 @@
+[General]
+version = 2
+blueprintrepositories = https://github.com/owncloud/craft-blueprints-owncloud.git|master|;https://invent.kde.org/packaging/craft-blueprints-kde.git|master|
+
+[core/cacert]
+version = 2022-04-26
+
+[craft/craft-blueprints-kde]
+version = master
+revision = f2c63ac8
+
+[craft/craft-blueprints-owncloud]
+version = master
+revision = 22723e5
+
+[craft/craft-core]
+version = master
+revision = c1ee8119f
+
+[dev-utils/cmake-base]
+version = 3.19.2
+
+[dev-utils/cmocka]
+version = 1.1.5
+
+[dev-utils/jom]
+version = 1_1_3
+
+[dev-utils/kshimgen]
+version = 0.4.4
+
+[dev-utils/ninja]
+version = 1.11.0
+
+[dev-utils/perl]
+version = 5.36.0
+
+[dev-utils/qtbinpatcher]
+version = 2.2.0
+
+[kde/frameworks/extra-cmake-modules]
+version = 5.96.0
+
+[libs/cairo]
+version = 1.16.0
+
+[libs/d3dcompiler]
+version = master
+
+[libs/freetype]
+version = 2.12.1
+
+[libs/gettext]
+version = 0.21
+
+[libs/glib]
+version = 2.68.4
+
+[libs/harfbuzz]
+version = 2.7.2
+
+[libs/libbzip2]
+version = 1.0.6
+
+[libs/libffi]
+version = 3.3
+
+[libs/libjpeg-turbo]
+version = 2.1.2
+
+[libs/liblzma]
+version = 5.2.3
+
+[libs/libpng]
+version = 1.6.37
+
+[libs/libxml2]
+version = 2.9.7
+
+[libs/libzstd]
+version = 1.5.0
+
+[libs/openssl]
+version = 1.1.1q
+
+[libs/pcre2]
+version = 10.37
+
+[libs/pixman]
+version = 0.40.0
+
+[libs/qt5/qtbase]
+version = 5.12.11
+
+[libs/qt5/qtdeclarative]
+version = 5.12.11
+
+[libs/qt5/qtremoteobjects]
+version = 5.12.11
+
+[libs/qt5/qtscxml]
+version = 5.12.11
+
+[libs/qt5/qtsvg]
+version = 5.12.11
+
+[libs/qt5/qttools]
+version = 5.12.11
+
+[libs/qt5/qttranslations]
+version = 5.12.11
+
+[libs/qt5/qtwinextras]
+version = 5.12.11
+
+[libs/qt5/qtxmlpatterns]
+version = 5.12.11
+
+[libs/sqlite]
+version = 3.36.0
+
+[libs/zlib]
+version = 1.2.12
+
+[python-modules/meson]
+version = master
+
+[python-modules/pip]
+version = master
+
+[python-modules/pip-system]
+version = master
+
+[python-modules/virtualenv]
+version = master
+
+[qt-libs/qtkeychain]
+version = 0.13.1
+
+[virtual/base]
+version = 0.2
+
+[virtual/bin-base]
+version = 0.2
+
+[virtual/craft-blueprints-kde-base]
+version = 0.1
+
